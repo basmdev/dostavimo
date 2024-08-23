@@ -24,6 +24,16 @@ class User(Base):
     last_name: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     last_interaction: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
+class Business(Base):
+    __tablename__ = 'businesses'
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    business_name: Mapped[str] = mapped_column(String(256), index=True)
+    address: Mapped[str] = mapped_column(String(256))
+    contact_person: Mapped[str] = mapped_column(String(256))
+    contact_phone: Mapped[str] = mapped_column(String(256))
     
 
 async def async_main():

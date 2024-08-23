@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from app.database.models import async_session
-from app.database.models import User
+from app.database.models import User, Business
 
 async def add_user(
     tg_id: int,
@@ -32,3 +32,21 @@ async def add_user(
             user.username = username or user.username
             user.last_interaction = last_interaction or user.last_interaction
             await session.commit()
+
+async def add_business(
+        business_name: str,
+        address: str,
+        contact_person: str,
+        contact_phone: str
+):
+    async with async_session() as session:
+        new_business = Business(
+            business_name=business_name,
+            address=address,
+            contact_person=contact_person,
+            contact_phone=contact_phone
+        )
+        
+        session.add(new_business)
+
+        await session.commit()
