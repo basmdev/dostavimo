@@ -8,8 +8,13 @@ main = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Я курьер')],
     [KeyboardButton(text='Помощь')]
 ],
-     resize_keyboard=True,
-     input_field_placeholder='Выберите...')
+     resize_keyboard=True)
+
+main_business = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Личный кабинет')],
+    [KeyboardButton(text='Помощь')]
+],
+     resize_keyboard=True)
 
 # Регистрация бизнеса
 business = InlineKeyboardMarkup(inline_keyboard=[

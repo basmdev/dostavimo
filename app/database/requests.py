@@ -28,10 +28,14 @@ async def add_user(
             session.add(user)
             await session.commit()
         else:
-            user.first_name = first_name or user.first_name
-            user.last_name = last_name or user.last_name
-            user.username = username or user.username
-            user.last_interaction = last_interaction or user.last_interaction
+            if first_name is not None:
+                user.first_name = first_name
+            if last_name is not None:
+                user.last_name = last_name
+            if username is not None:
+                user.username = username
+            if last_interaction is not None:
+                user.last_interaction = last_interaction
             await session.commit()
 
 # Добавление бизнеса в базу

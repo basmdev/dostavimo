@@ -6,8 +6,10 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 
+from app.database.crud import get_user_has_business
 import app.keyboards as kb
 import app.database.requests as rq
+from app.database.models import async_session
 
 
 router = Router()
@@ -18,17 +20,23 @@ class BusinessReg(StatesGroup):
     contact_person = State()
     contact_phone = State()
 
+# Приветственное сообщение
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     user = message.from_user
-    await rq.add_user(
-        tg_id=user.id,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        username=user.username,
-        last_interaction=datetime.now()
-    )
-    await message.answer('Добро пожаловать в Dostavimo!', reply_markup=kb.main)
+    async with async_session() as session:
+        await rq.add_user(
+            tg_id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            username=user.username,
+            last_interaction=datetime.now()
+        )
+        has_business = await get_user_has_business(user.id, session)
+
+        reply_markup = kb.main_business if has_business else kb.main
+
+        await message.answer('Добро пожаловать в Dostavimo!', reply_markup=reply_markup)
 
 # Пункт меню "Срочная доставка"
 @router.message(F.text == 'Срочная доставка')
@@ -109,7 +117,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
         contact_phone=data["contact_phone"],
         user_id=data["user_id"]
     )
-    await callback.message.answer('Регистрация прошла успешно!')
+    await callback.message.answer('Регистрация прошла успешно!', reply_markup=kb.main_business)
     await state.clear()
 
 # Отмена регистрации бизнеса

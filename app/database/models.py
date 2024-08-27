@@ -24,6 +24,7 @@ class User(Base):
     last_name: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     last_interaction: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    is_courier: Mapped[bool] = mapped_column(Boolean, default=False)
     has_business: Mapped[bool] = mapped_column(Boolean, default=False)
     business: Mapped[Optional['Business']] = relationship('Business', back_populates='user', uselist=False)
 
