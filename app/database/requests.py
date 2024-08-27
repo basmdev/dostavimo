@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app.database.models import async_session
 from app.database.models import User, Business
 
+# Добавление пользователя в базу
 async def add_user(
     tg_id: int,
     first_name: Optional[str] = None,
@@ -33,6 +34,7 @@ async def add_user(
             user.last_interaction = last_interaction or user.last_interaction
             await session.commit()
 
+# Добавление бизнеса в базу
 async def add_business(
         business_name: str,
         address: str,

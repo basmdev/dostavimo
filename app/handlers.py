@@ -30,27 +30,33 @@ async def cmd_start(message: Message):
     )
     await message.answer('Добро пожаловать в Dostavimo!', reply_markup=kb.main)
 
+# Пункт меню "Срочная доставка"
 @router.message(F.text == 'Срочная доставка')
 async def catalog(message: Message):
     await message.answer('Выбрана срочная доставка')
 
+# Пункт меню "Я предприниматель"
 @router.message(F.text == 'Я предприниматель')
 async def catalog(message: Message):
     await message.answer('Желаете пройти регистрацию?', reply_markup=kb.business)
 
+# Пункт меню "Я курьер"
 @router.message(F.text == 'Я курьер')
 async def catalog(message: Message):
     await message.answer('Желаете пройти регистрацию?', reply_markup=kb.courier)
 
+# Пункт меню "Помощь"
 @router.message(F.text == 'Помощь')
 async def catalog(message: Message):
     await message.answer('Выбрана помощь')
 
+# Кнопка отмены регистрации бизнеса
 @router.callback_query(F.data == 'business_no')
 async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
 
+# Кнопка регистрации бизнеса
 @router.callback_query(F.data == 'business_yes')
 async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -89,6 +95,7 @@ async def business_reg_fourth(message: Message, state: FSMContext):
     reply_markup=kb.reg_done
 )
 
+# Подтверждение регистрации бизнеса
 @router.callback_query(F.data == 'reg_yes')
 async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -102,6 +109,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer('Регистрация прошла успешно!')
     await state.clear()
 
+# Отмена регистрации бизнеса
 @router.callback_query(F.data == 'reg_no')
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
