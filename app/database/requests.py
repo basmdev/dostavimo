@@ -39,16 +39,23 @@ async def add_business(
         business_name: str,
         address: str,
         contact_person: str,
-        contact_phone: str
+        contact_phone: str,
+        user_id: int
 ):
     async with async_session() as session:
         new_business = Business(
             business_name=business_name,
             address=address,
             contact_person=contact_person,
-            contact_phone=contact_phone
+            contact_phone=contact_phone,
+            user_id=user_id
         )
         
         session.add(new_business)
+
+        user = await session.scalar(select(User).where(User.tg_id == user_id))
+        if user:
+            user.has_business = True
+            await session.commit()
 
         await session.commit()

@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, DateTime, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import BigInteger, DateTime, String, ForeignKey, Boolean
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
 from config import DATABASE
@@ -24,6 +24,8 @@ class User(Base):
     last_name: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     last_interaction: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    has_business: Mapped[bool] = mapped_column(Boolean, default=False)
+    business: Mapped[Optional['Business']] = relationship('Business', back_populates='user', uselist=False)
 
 
 class Business(Base):
@@ -34,6 +36,8 @@ class Business(Base):
     address: Mapped[str] = mapped_column(String(256))
     contact_person: Mapped[str] = mapped_column(String(256))
     contact_phone: Mapped[str] = mapped_column(String(256))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user: Mapped[User] = relationship('User', back_populates='business')
     
 
 async def async_main():

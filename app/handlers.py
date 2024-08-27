@@ -60,6 +60,8 @@ async def business_reg_first(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == 'business_yes')
 async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    user_id = callback.from_user.id
+    await state.update_data(user_id=user_id)
     await state.set_state(BusinessReg.business_name)
     await callback.message.answer('Как называется Ваш бизнес?')
 
@@ -104,7 +106,8 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
         business_name=data["business_name"],
         address=data["address"],
         contact_person=data["contact_person"],
-        contact_phone=data["contact_phone"]
+        contact_phone=data["contact_phone"],
+        user_id=data["user_id"]
     )
     await callback.message.answer('Регистрация прошла успешно!')
     await state.clear()
