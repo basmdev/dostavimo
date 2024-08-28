@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 
-from app.database.crud import get_user_has_business
+from app.database.crud import get_user_has_business, get_user_is_courier
 import app.keyboards as kb
 import app.database.requests as rq
 from app.database.models import async_session
@@ -39,8 +39,9 @@ async def cmd_start(message: Message):
             last_interaction=datetime.now()
         )
         has_business = await get_user_has_business(user.id, session)
+        is_courier = await get_user_is_courier(user.id, session)
 
-        reply_markup = kb.main_business if has_business else kb.main
+        reply_markup = kb.main_business if has_business else (kb.main_courier if is_courier else kb.main)
 
         await message.answer('Добро пожаловать в Dostavimo!', reply_markup=reply_markup)
 
