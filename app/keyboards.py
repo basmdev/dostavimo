@@ -16,6 +16,12 @@ main_business = ReplyKeyboardMarkup(keyboard=[
 ],
      resize_keyboard=True)
 
+main_courier = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Личный кабинет')],
+    [KeyboardButton(text='Помощь')]
+],
+     resize_keyboard=True)
+
 # Регистрация бизнеса
 business = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Да', callback_data='business_yes'),

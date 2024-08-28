@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from app.database.models import async_session
-from app.database.models import User, Business
+from app.database.models import User, Business, Courier
 
 # Добавление пользователя в базу
 async def add_user(
@@ -60,6 +60,30 @@ async def add_business(
         user = await session.scalar(select(User).where(User.tg_id == user_id))
         if user:
             user.has_business = True
+            await session.commit()
+
+        await session.commit()
+
+# Добавление курьера в базу
+async def add_courier(
+        courier_name: str,
+        contact_phone: str,
+        photo_url: str,
+        user_id: int
+):
+    async with async_session() as session:
+        new_courier = Courier(
+            courier_name=courier_name,
+            contact_phone=contact_phone,
+            photo_url=photo_url,
+            user_id=user_id
+        )
+        
+        session.add(new_courier)
+
+        user = await session.scalar(select(User).where(User.tg_id == user_id))
+        if user:
+            user.is_courier = True
             await session.commit()
 
         await session.commit()
