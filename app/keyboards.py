@@ -34,8 +34,14 @@ courier = InlineKeyboardMarkup(inline_keyboard=[
      InlineKeyboardButton(text='Нет', callback_data='courier_no')]
 ])
 
-# Подтверждение регистрации
+# Подтверждение регистрации бизнеса
 reg_done = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Да', callback_data='reg_yes'),
-     InlineKeyboardButton(text='Нет', callback_data='reg_no')]
+    [InlineKeyboardButton(text='Да', callback_data='reg_yes_business'),
+     InlineKeyboardButton(text='Нет', callback_data='reg_no_business')]
+])
+
+# Подтверждение регистрации курьера
+reg_done = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Да', callback_data='reg_yes_courier'),
+     InlineKeyboardButton(text='Нет', callback_data='reg_no_courier')]
 ])

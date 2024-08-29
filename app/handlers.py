@@ -167,7 +167,7 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
     )
 
 # Подтверждение регистрации курьера
-@router.callback_query(F.data == 'reg_yes')
+@router.callback_query(F.data == 'reg_yes_courier')
 async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
@@ -181,7 +181,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
 # Подтверждение регистрации бизнеса
-@router.callback_query(F.data == 'reg_yes')
+@router.callback_query(F.data == 'reg_yes_business')
 async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
@@ -196,14 +196,14 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
 # Отмена регистрации бизнеса
-@router.callback_query(F.data == 'reg_no')
+@router.callback_query(F.data == 'reg_no_business')
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer('Регистрация отменена, хотите начать заново?', reply_markup=kb.business)
     await state.clear()
 
 # Отмена регистрации курьера
-@router.callback_query(F.data == 'reg_no')
+@router.callback_query(F.data == 'reg_no_courier')
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer('Регистрация отменена, хотите начать заново?', reply_markup=kb.courier)
