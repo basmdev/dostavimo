@@ -142,18 +142,18 @@ async def courier_reg_third(message: Message, state: FSMContext):
 @router.message(CourierReg.photo_url)
 async def courier_reg_fourth(message: Message, state: FSMContext):
     if not message.photo:
-        await message.answer("Пожалуйста, отправьте фото паспорта")
+        await message.answer('Пожалуйста, отправьте фото паспорта')
         return
 
     photo_id = message.photo[-1].file_id
+    
     photo = await message.bot.get_file(photo_id)
-
-    file_path = photo.file_path
     
-    original_file_name = file_path.split('/')[-1]
+    user_id = message.from_user.id
     
-    file_name = f'photos/{original_file_name}'
-    await message.bot.download_file(file_path, file_name)
+    file_name = f'photos/{user_id}.jpg'
+    
+    await message.bot.download_file(photo.file_path, file_name)
 
     await state.update_data(photo_url=file_name)
 
