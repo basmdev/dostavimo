@@ -1,18 +1,23 @@
 from datetime import datetime
+from decimal import Decimal
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from yandex_geocoder import Client
 
 from app.database.crud import get_user_has_business, get_user_is_courier
 import app.keyboards as kb
 import app.database.requests as rq
 from app.database.models import async_session
+from config import YANDEX_API_KEY
 
 
 router = Router()
+
+client = Client(YANDEX_API_KEY)
 
 class BusinessReg(StatesGroup):
     business_name = State()
@@ -25,6 +30,10 @@ class CourierReg(StatesGroup):
     courier_name = State()
     contact_phone = State()
     photo_url = State()
+
+
+class GeoState(StatesGroup):
+    waiting_for_address = State()
 
 # Приветственное сообщение
 @router.message(CommandStart())
@@ -47,22 +56,22 @@ async def cmd_start(message: Message):
 
 # Пункт меню "Срочная доставка"
 @router.message(F.text == 'Срочная доставка')
-async def catalog(message: Message):
+async def delivery(message: Message):
     await message.answer('Выбрана срочная доставка')
 
 # Пункт меню "Я предприниматель"
 @router.message(F.text == 'Я предприниматель')
-async def catalog(message: Message):
+async def business(message: Message):
     await message.answer('Желаете пройти регистрацию?', reply_markup=kb.business)
 
 # Пункт меню "Я курьер"
 @router.message(F.text == 'Я курьер')
-async def catalog(message: Message):
+async def courier(message: Message):
     await message.answer('Желаете пройти регистрацию?', reply_markup=kb.courier)
 
 # Пункт меню "Помощь"
 @router.message(F.text == 'Помощь')
-async def catalog(message: Message):
+async def help(message: Message):
     await message.answer('Выбрана помощь')
 
 # Кнопка отмены регистрации бизнеса
@@ -207,4 +216,45 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer('Регистрация отменена, хотите начать заново?', reply_markup=kb.courier)
+    await state.clear()
+
+# Тесты
+@router.message(F.text == 'Тест')
+async def ask_for_address(message: Message, state: FSMContext):
+    await message.answer("Введите адрес, который хотите найти:")
+    await state.set_state(GeoState.waiting_for_address)
+
+@router.message(GeoState.waiting_for_address)
+async def get_coordinates(message: Message, state: FSMContext):
+    address = message.text
+    
+    try:
+        # Получаем координаты по адресу
+        coordinates = client.coordinates(address)
+        if not coordinates:
+            await message.answer("Не удалось найти координаты для указанного адреса.")
+            return
+        
+        latitude, longitude = coordinates
+        lat = Decimal(str(latitude))
+        lon = Decimal(str(longitude))
+        
+        # Получаем адрес по координатам
+        reverse_address = client.address(lat, lon)
+        if not reverse_address:
+            await message.answer("Не удалось найти адрес для указанных координат.")
+            return
+        
+        response = (
+            f"Координаты для адреса '{address}':\n"
+            f"Широта: {lat}\n"
+            f"Долгота: {lon}\n\n"
+            f"Полный адрес по координатам:\n"
+            f"{reverse_address}"
+        )
+        await message.answer(response)
+    
+    except Exception as e:
+        await message.answer(f"Ошибка при обработке запроса: {str(e)}")
+
     await state.clear()
