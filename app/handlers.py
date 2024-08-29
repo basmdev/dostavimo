@@ -166,8 +166,6 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
         reply_markup=kb.reg_done
     )
 
-
-
 # Подтверждение регистрации курьера
 @router.callback_query(F.data == 'reg_yes')
 async def confirm_reg(callback: CallbackQuery, state: FSMContext):
