@@ -144,14 +144,18 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
     if not message.photo:
         await message.answer("Пожалуйста, отправьте фото паспорта")
         return
+
     photo_id = message.photo[-1].file_id
     photo = await message.bot.get_file(photo_id)
 
     file_path = photo.file_path
-    file_name = f'photos/{photo_id}.jpg'
+    
+    original_file_name = file_path.split('/')[-1]
+    
+    file_name = f'photos/{original_file_name}'
     await message.bot.download_file(file_path, file_name)
 
-    await state.update_data(photo_url=file_path)
+    await state.update_data(photo_url=file_name)
 
     data = await state.get_data()
     await message.answer(
@@ -161,6 +165,7 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
         parse_mode="HTML",
         reply_markup=kb.reg_done
     )
+
 
 
 # Подтверждение регистрации курьера
