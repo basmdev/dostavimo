@@ -51,6 +51,17 @@ class Courier(Base):
     photo_url: Mapped[str] = mapped_column(String(256), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     user: Mapped[User] = relationship('User', back_populates='courier')
+
+
+class FastDelivery(Base):
+    __tablename__ = 'deliveries'
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    start_geo: Mapped[str] = mapped_column(String(1024), index=True)
+    end_geo: Mapped[str] = mapped_column(String(1024))
+    name: Mapped[str] = mapped_column(String(256))
+    phone: Mapped[str]= mapped_column(String(256))
+    comment: Mapped[str] = mapped_column(String(1024))
     
 
 async def async_main():

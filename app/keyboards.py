@@ -35,13 +35,19 @@ courier = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 # Подтверждение регистрации бизнеса
-reg_done = InlineKeyboardMarkup(inline_keyboard=[
+reg_done_business = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Да', callback_data='reg_yes_business'),
      InlineKeyboardButton(text='Нет', callback_data='reg_no_business')]
 ])
 
 # Подтверждение регистрации курьера
-reg_done = InlineKeyboardMarkup(inline_keyboard=[
+reg_done_courier = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Да', callback_data='reg_yes_courier'),
      InlineKeyboardButton(text='Нет', callback_data='reg_no_courier')]
+])
+
+# Подтверждение быстрой доставки
+fast_delivery = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Да', callback_data='delivery_yes'),
+     InlineKeyboardButton(text='Нет', callback_data='delivery_no')]
 ])

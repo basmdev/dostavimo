@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from app.database.models import async_session
-from app.database.models import User, Business, Courier
+from app.database.models import User, Business, Courier, FastDelivery
 
 # Добавление пользователя в базу
 async def add_user(
@@ -85,5 +85,26 @@ async def add_courier(
         if user:
             user.is_courier = True
             await session.commit()
+
+        await session.commit()
+
+# Добавление быстрой доставки в базу
+async def add_delivery(
+        start_geo: str,
+        end_geo: str,
+        name: str,
+        phone: str,
+        comment: str
+):
+    async with async_session() as session:
+        new_delivery = FastDelivery(
+            start_geo=start_geo,
+            end_geo=end_geo,
+            name=name,
+            phone=phone,
+            comment=comment
+        )
+        
+        session.add(new_delivery)
 
         await session.commit()

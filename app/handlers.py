@@ -1,23 +1,18 @@
 from datetime import datetime
-from decimal import Decimal
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
-from yandex_geocoder import Client
 
 from app.database.crud import get_user_has_business, get_user_is_courier
 import app.keyboards as kb
 import app.database.requests as rq
 from app.database.models import async_session
-from config import YANDEX_API_KEY
 
 
 router = Router()
-
-client = Client(YANDEX_API_KEY)
 
 class BusinessReg(StatesGroup):
     business_name = State()
@@ -30,6 +25,14 @@ class CourierReg(StatesGroup):
     courier_name = State()
     contact_phone = State()
     photo_url = State()
+
+
+class FastDelivery(StatesGroup):
+    start_geo = State()
+    end_geo = State()
+    name = State()
+    phone = State()
+    comment = State()
 
 
 class GeoState(StatesGroup):
@@ -56,8 +59,72 @@ async def cmd_start(message: Message):
 
 # Пункт меню "Срочная доставка"
 @router.message(F.text == 'Срочная доставка')
-async def delivery(message: Message):
-    await message.answer('Выбрана срочная доставка')
+async def delivery_first(message: Message, state: FSMContext):
+    await state.set_state(FastDelivery.start_geo)
+    await message.answer('Укажите адрес, откуда забирать?')
+
+@router.message(FastDelivery.start_geo)
+async def delivery_second(message: Message, state: FSMContext):
+    await state.update_data(start_geo=message.text)
+    await state.set_state(FastDelivery.end_geo)
+    await message.answer('Укажите адрес, куда доставить?')
+
+@router.message(FastDelivery.end_geo)
+async def delivery_third(message: Message, state: FSMContext):
+    await state.update_data(end_geo=message.text)
+    await state.set_state(FastDelivery.name)
+    await message.answer('Имя получателя?')
+
+@router.message(FastDelivery.name)
+async def delivery_fourth(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await state.set_state(FastDelivery.phone)
+    await message.answer('Номер телефона получателя?')
+
+@router.message(FastDelivery.phone)
+async def delivery_fourth(message: Message, state: FSMContext):
+    await state.update_data(phone=message.text)
+    await state.set_state(FastDelivery.comment)
+    await message.answer('Укажите комментарий к заказу')
+
+@router.message(FastDelivery.comment)
+async def delivery_fifth(message: Message, state: FSMContext):
+    await state.update_data(comment=message.text)
+    data = await state.get_data()
+
+    await message.answer(
+    f'''Проверьте, все ли правильно?
+<b>Начальный адрес:</b> {data['start_geo']}
+<b>Адрес доставки:</b> {data['end_geo']}
+<b>Имя получателя:</b> {data["name"]}
+<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Комментарий:</b> {data['comment']}''',
+    parse_mode="HTML",
+    reply_markup=kb.fast_delivery
+)
+
+@router.callback_query(F.data == 'delivery_yes')
+async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    data = await state.get_data()
+
+    await rq.add_delivery(
+        start_geo=data['start_geo'],
+        end_geo=data['end_geo'],
+        name=data['name'],
+        phone=data['phone'],
+        comment=data['comment']
+    )
+
+    await callback.message.answer('Информация отправлена курьерам, ждите', reply_markup=kb.main)
+    await state.clear()
+
+# Отмена срочной доставки
+@router.callback_query(F.data == 'delivery_no')
+async def no_delivery(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.answer('Доставка отменена', reply_markup=kb.main)
+    await state.clear()
 
 # Пункт меню "Я предприниматель"
 @router.message(F.text == 'Я предприниматель')
@@ -124,7 +191,7 @@ async def business_reg_fifth(message: Message, state: FSMContext):
 <b>Контактное лицо:</b> {data["contact_person"]}
 <b>Контактный телефон:</b> {data["contact_phone"]}''',
     parse_mode="HTML",
-    reply_markup=kb.reg_done
+    reply_markup=kb.reg_done_business
 )
     
 # Кнопка регистрации курьера
@@ -172,7 +239,7 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
 <b>Имя:</b> {data["courier_name"]}
 <b>Телефон:</b> {data["contact_phone"]}''',
         parse_mode="HTML",
-        reply_markup=kb.reg_done
+        reply_markup=kb.reg_done_courier
     )
 
 # Подтверждение регистрации курьера
@@ -216,45 +283,4 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer('Регистрация отменена, хотите начать заново?', reply_markup=kb.courier)
-    await state.clear()
-
-# Тесты
-@router.message(F.text == 'Тест')
-async def ask_for_address(message: Message, state: FSMContext):
-    await message.answer("Введите адрес, который хотите найти:")
-    await state.set_state(GeoState.waiting_for_address)
-
-@router.message(GeoState.waiting_for_address)
-async def get_coordinates(message: Message, state: FSMContext):
-    address = message.text
-    
-    try:
-        # Получаем координаты по адресу
-        coordinates = client.coordinates(address)
-        if not coordinates:
-            await message.answer("Не удалось найти координаты для указанного адреса.")
-            return
-        
-        latitude, longitude = coordinates
-        lat = Decimal(str(latitude))
-        lon = Decimal(str(longitude))
-        
-        # Получаем адрес по координатам
-        reverse_address = client.address(lat, lon)
-        if not reverse_address:
-            await message.answer("Не удалось найти адрес для указанных координат.")
-            return
-        
-        response = (
-            f"Координаты для адреса '{address}':\n"
-            f"Широта: {lat}\n"
-            f"Долгота: {lon}\n\n"
-            f"Полный адрес по координатам:\n"
-            f"{reverse_address}"
-        )
-        await message.answer(response)
-    
-    except Exception as e:
-        await message.answer(f"Ошибка при обработке запроса: {str(e)}")
-
     await state.clear()
