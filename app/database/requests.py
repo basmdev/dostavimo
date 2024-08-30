@@ -6,13 +6,14 @@ from sqlalchemy import select
 from app.database.models import async_session
 from app.database.models import User, Business, Courier, FastDelivery
 
+
 # Добавление пользователя в базу
 async def add_user(
     tg_id: int,
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     username: Optional[str] = None,
-    last_interaction: Optional[datetime] = None
+    last_interaction: Optional[datetime] = None,
 ):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
@@ -23,7 +24,7 @@ async def add_user(
                 first_name=first_name,
                 last_name=last_name,
                 username=username,
-                last_interaction=last_interaction
+                last_interaction=last_interaction,
             )
             session.add(user)
             await session.commit()
@@ -38,13 +39,14 @@ async def add_user(
                 user.last_interaction = last_interaction
             await session.commit()
 
+
 # Добавление бизнеса в базу
 async def add_business(
-        business_name: str,
-        address: str,
-        contact_person: str,
-        contact_phone: str,
-        user_id: int
+    business_name: str,
+    address: str,
+    contact_person: str,
+    contact_phone: str,
+    user_id: int,
 ):
     async with async_session() as session:
         new_business = Business(
@@ -52,9 +54,9 @@ async def add_business(
             address=address,
             contact_person=contact_person,
             contact_phone=contact_phone,
-            user_id=user_id
+            user_id=user_id,
         )
-        
+
         session.add(new_business)
 
         user = await session.scalar(select(User).where(User.tg_id == user_id))
@@ -64,21 +66,19 @@ async def add_business(
 
         await session.commit()
 
+
 # Добавление курьера в базу
 async def add_courier(
-        courier_name: str,
-        contact_phone: str,
-        photo_url: str,
-        user_id: int
+    courier_name: str, contact_phone: str, photo_url: str, user_id: int
 ):
     async with async_session() as session:
         new_courier = Courier(
             courier_name=courier_name,
             contact_phone=contact_phone,
             photo_url=photo_url,
-            user_id=user_id
+            user_id=user_id,
         )
-        
+
         session.add(new_courier)
 
         user = await session.scalar(select(User).where(User.tg_id == user_id))
@@ -88,13 +88,10 @@ async def add_courier(
 
         await session.commit()
 
+
 # Добавление быстрой доставки в базу
 async def add_delivery(
-        start_geo: str,
-        end_geo: str,
-        name: str,
-        phone: str,
-        comment: str
+    start_geo: str, end_geo: str, name: str, phone: str, comment: str
 ):
     async with async_session() as session:
         new_delivery = FastDelivery(
@@ -102,9 +99,9 @@ async def add_delivery(
             end_geo=end_geo,
             name=name,
             phone=phone,
-            comment=comment
+            comment=comment,
         )
-        
+
         session.add(new_delivery)
 
         await session.commit()
