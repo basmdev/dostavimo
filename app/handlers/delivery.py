@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 import app.keyboards as kb
 import app.database.requests as rq
+from app.database.crud import get_couriers
 
 
 router = Router()
@@ -83,6 +84,23 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         phone=data["phone"],
         comment=data["comment"],
     )
+
+    couriers = await get_couriers()
+    for courier_id in couriers:
+        try:
+            await callback.bot.send_message(
+                courier_id,
+                f"""Новый заказ на доставку:
+<b>Начальный адрес:</b> {data['start_geo']}
+<b>Адрес доставки:</b> {data['end_geo']}
+<b>Имя получателя:</b> {data["name"]}
+<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Комментарий:</b> {data['comment']}""",
+                parse_mode="HTML",
+                reply_markup=kb.delivery_action,
+            )
+        except Exception as e:
+            print(f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}")
 
     await callback.message.answer(
         "Информация отправлена курьерам, ждите", reply_markup=kb.main

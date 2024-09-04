@@ -17,3 +17,13 @@ async def get_user_is_courier(user_id: int, session: AsyncSession):
         result = await session.execute(select(User).filter(User.tg_id == user_id))
         user = result.scalars().first()
         return user.is_courier if user else False
+
+
+# Получение списка курьеров
+async def get_couriers():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User.tg_id).filter(User.is_courier == True)
+        )
+        couriers = result.scalars().all()
+        return couriers

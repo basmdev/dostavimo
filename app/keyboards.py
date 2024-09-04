@@ -78,3 +78,18 @@ fast_delivery = InlineKeyboardMarkup(
         ]
     ]
 )
+
+# Информация о доставке для курьера
+delivery_action = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Принять", callback_data="accept_delivery"),
+            InlineKeyboardButton(text="Отклонить", callback_data="decline_delivery"),
+        ],
+        [
+            InlineKeyboardButton(
+                text="Сообщить о нарушении", callback_data="report_violation"
+            )
+        ],
+    ]
+)
