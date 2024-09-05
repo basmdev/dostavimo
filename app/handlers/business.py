@@ -148,5 +148,25 @@ async def update_business_name(message: Message, state: FSMContext):
         user_id=user_id,
     )
     
-    await message.answer(f"Название изменено на: {new_name}", reply_markup=kb.main_business)
+    await message.answer(f"Новое название: {new_name}", reply_markup=kb.main_business)
+    await state.clear()
+
+# Изменение адреса бизнеса
+@router.callback_query(F.data == "business_change_address")
+async def change_business_address(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.set_state(EditBusiness.edit_address)
+    await callback.message.answer("Введите новый адрес")
+
+@router.message(EditBusiness.edit_address)
+async def update_business_address(message: Message, state: FSMContext):
+    new_address = message.text
+    user_id = message.from_user.id
+    
+    await rq.update_business_address(
+        business_address=new_address,
+        user_id=user_id,
+    )
+    
+    await message.answer(f"Новый адрес: {new_address}", reply_markup=kb.main_business)
     await state.clear()
