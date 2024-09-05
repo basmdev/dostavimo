@@ -17,6 +17,13 @@ class BusinessReg(StatesGroup):
     contact_phone = State()
 
 
+class EditBusiness(StatesGroup):
+    edit_name = State()
+    edit_address = State()
+    edit_contact_person = State()
+    edit_contact_phone = State()
+
+
 # Пункт меню "Я предприниматель"
 @router.message(F.text == "Я предприниматель")
 async def business(message: Message):
@@ -101,4 +108,45 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         "Регистрация отменена, хотите начать заново?", reply_markup=kb.business
     )
+    await state.clear()
+
+# Личный кабинет бизнеса
+@router.message(F.text == "Личный кабинет бизнеса")
+async def cabinet_business(message: Message):
+    await message.answer("Выберите пункт меню", reply_markup=kb.business_profile)
+
+# Изменение профиля бизнеса
+@router.callback_query(F.data == "edit_profile_business")
+async def edit_profile_business(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text(
+        "Редактирование профиля", reply_markup=kb.business_edit_profile
+    )
+
+# Переход назад в профиле бизнеса
+@router.callback_query(F.data == "business_back")
+async def edit_profile_business(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text(
+            "Выберите пункт меню", reply_markup=kb.business_profile
+        )
+    
+# Изменение названия бизнеса
+@router.callback_query(F.data == "business_change_name")
+async def change_business_name(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.set_state(EditBusiness.edit_name)
+    await callback.message.answer("Введите новое название")
+
+@router.message(EditBusiness.edit_name)
+async def update_business_name(message: Message, state: FSMContext):
+    new_name = message.text
+    user_id = message.from_user.id
+    
+    await rq.update_business_name(
+        business_name=new_name,
+        user_id=user_id,
+    )
+    
+    await message.answer(f"Название изменено на: {new_name}", reply_markup=kb.main_business)
     await state.clear()

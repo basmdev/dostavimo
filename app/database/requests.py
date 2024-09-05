@@ -105,3 +105,16 @@ async def add_delivery(
         session.add(new_delivery)
 
         await session.commit()
+
+# Обновление названия бизнеса
+async def update_business_name(business_name: str, user_id: int):
+    async with async_session() as session:
+        business = await session.scalar(
+            select(Business).where(Business.user_id == user_id)
+        )
+
+        if business:
+            business.business_name = business_name
+            await session.commit()
+        else:
+            raise ValueError("Бизнес для данного пользователя не найден.")

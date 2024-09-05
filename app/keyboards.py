@@ -19,13 +19,13 @@ main = ReplyKeyboardMarkup(
 
 # Клавиатура предпринимателя
 main_business = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="Личный кабинет")], [KeyboardButton(text="Помощь")]],
+    keyboard=[[KeyboardButton(text="Личный кабинет бизнеса")], [KeyboardButton(text="Помощь")]],
     resize_keyboard=True,
 )
 
 # Клавиатура курьера
 main_courier = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="Личный кабинет")], [KeyboardButton(text="Помощь")]],
+    keyboard=[[KeyboardButton(text="Личный кабинет курьера")], [KeyboardButton(text="Помощь")]],
     resize_keyboard=True,
 )
 
@@ -91,5 +91,41 @@ delivery_action = InlineKeyboardMarkup(
                 text="Сообщить о нарушении", callback_data="report_violation"
             )
         ],
+    ]
+)
+
+# Личный кабинет бизнеса
+business_profile = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Мои доставки", callback_data="business_deliveries")
+        ],
+        [
+            InlineKeyboardButton(text="Редактировать профиль", callback_data="edit_profile_business")
+        ],
+        [
+            InlineKeyboardButton(text="Удалить профиль", callback_data="delete_profile_business")
+        ]
+    ]
+)
+
+# Редактирование профиля бизнеса
+business_edit_profile = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Изменить название", callback_data="business_change_name")
+        ],
+        [
+            InlineKeyboardButton(text="Изменить адрес", callback_data="business_change_address")
+        ],
+        [
+            InlineKeyboardButton(text="Изменить контактное лицо", callback_data="business_change_person")
+        ],
+        [
+            InlineKeyboardButton(text="Изменить контактный телефон", callback_data="business_change_phone")
+        ],
+        [
+            InlineKeyboardButton(text="Отмена", callback_data="business_back")
+        ]
     ]
 )
