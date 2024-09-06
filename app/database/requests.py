@@ -106,6 +106,7 @@ async def add_delivery(
 
         await session.commit()
 
+
 # Обновление названия бизнеса
 async def update_business_name(business_name: str, user_id: int):
     async with async_session() as session:
@@ -119,6 +120,7 @@ async def update_business_name(business_name: str, user_id: int):
         else:
             raise ValueError("Бизнес для данного пользователя не найден.")
 
+
 # Обновление адреса бизнеса
 async def update_business_address(business_address: str, user_id: int):
     async with async_session() as session:
@@ -131,3 +133,41 @@ async def update_business_address(business_address: str, user_id: int):
             await session.commit()
         else:
             raise ValueError("Бизнес для данного пользователя не найден.")
+
+
+# Обновление контактного лица бизнеса
+async def update_business_person(business_person: str, user_id: int):
+    async with async_session() as session:
+        business = await session.scalar(
+            select(Business).where(Business.user_id == user_id)
+        )
+
+        if business:
+            business.contact_person = business_person
+            await session.commit()
+        else:
+            raise ValueError("Бизнес для данного пользователя не найден.")
+
+
+# Обновление контактного телефона бизнеса
+async def update_business_phone(business_phone: str, user_id: int):
+    async with async_session() as session:
+        business = await session.scalar(
+            select(Business).where(Business.user_id == user_id)
+        )
+
+        if business:
+            business.contact_phone = business_phone
+            await session.commit()
+        else:
+            raise ValueError("Бизнес для данного пользователя не найден.")
+
+
+# Получение информации о бизнесе
+async def get_business_by_user_id(user_id: int):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Business).where(Business.user_id == user_id)
+        )
+        business = result.scalars().first()
+        return business
