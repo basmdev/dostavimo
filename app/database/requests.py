@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, delete, update
 
 from app.database.models import async_session
 from app.database.models import User, Business, Courier, FastDelivery
@@ -171,3 +171,15 @@ async def get_business_by_user_id(user_id: int):
         )
         business = result.scalars().first()
         return business
+
+
+# Удаление профиля бизнеса из базы
+async def delete_business_by_user_id(user_id: int):
+    async with async_session() as session:
+        await session.execute(delete(Business).where(Business.user_id == user_id))
+
+        await session.execute(
+            update(User).where(User.id == user_id).values(has_business=0)
+        )
+
+        await session.commit()

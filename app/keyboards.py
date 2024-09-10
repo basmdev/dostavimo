@@ -148,3 +148,17 @@ business_edit_profile = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Отмена", callback_data="business_back")],
     ]
 )
+
+# Подтверждение удаления профиля бизнеса
+confirm_delete_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Подтвердить", callback_data="confirm_delete_business"
+            ),
+            InlineKeyboardButton(
+                text="Отменить", callback_data="cancel_delete_business"
+            ),
+        ]
+    ]
+)

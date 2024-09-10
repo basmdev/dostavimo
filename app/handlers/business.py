@@ -250,3 +250,34 @@ async def update_business_phone(message: Message, state: FSMContext):
         parse_mode="HTML",
     )
     await state.clear()
+
+
+# Удаление профиля бизнеса
+@router.callback_query(F.data == "delete_profile_business")
+async def delete_business_profile(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.answer(
+        "Вы уверены, что хотите удалить свой профиль бизнеса?",
+        reply_markup=kb.confirm_delete_keyboard,
+    )
+
+
+# Подтверждение удаления бизнеса
+@router.callback_query(F.data == "confirm_delete_business")
+async def delete_business(callback: CallbackQuery):
+    await callback.answer()
+    user_id = callback.from_user.id
+
+    await rq.delete_business_by_user_id(user_id)
+
+    await callback.message.answer("Профиль бизнеса удален", reply_markup=kb.main)
+
+
+# Отмена удаления бизнеса
+@router.callback_query(F.data == "cancel_delete_business")
+async def cancel_delete_business(callback: CallbackQuery):
+    await callback.answer()
+
+    await callback.message.answer(
+        "Удаление профиля отменено", reply_markup=kb.main_business
+    )
