@@ -207,3 +207,15 @@ async def delete_business_by_user_id(user_id: int):
         )
 
         await session.commit()
+
+
+# Удаление профиля курьера из базы
+async def delete_courier_by_user_id(user_id: int):
+    async with async_session() as session:
+        await session.execute(delete(Courier).where(Courier.user_id == user_id))
+
+        await session.execute(
+            update(User).where(User.id == user_id).values(is_courier=0)
+        )
+
+        await session.commit()

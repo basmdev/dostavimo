@@ -258,7 +258,7 @@ async def delete_business_profile(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer(
         "Вы уверены, что хотите удалить свой профиль бизнеса?",
-        reply_markup=kb.confirm_delete_keyboard,
+        reply_markup=kb.confirm_delete_business,
     )
 
 

@@ -184,7 +184,7 @@ courier_edit_profile = InlineKeyboardMarkup(
 )
 
 # Подтверждение удаления профиля бизнеса
-confirm_delete_keyboard = InlineKeyboardMarkup(
+confirm_delete_business = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -192,6 +192,20 @@ confirm_delete_keyboard = InlineKeyboardMarkup(
             ),
             InlineKeyboardButton(
                 text="Отменить", callback_data="cancel_delete_business"
+            ),
+        ]
+    ]
+)
+
+# Подтверждение удаления профиля курьера
+confirm_delete_courier = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Подтвердить", callback_data="confirm_delete_courier"
+            ),
+            InlineKeyboardButton(
+                text="Отменить", callback_data="cancel_delete_courier"
             ),
         ]
     ]

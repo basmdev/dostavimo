@@ -170,3 +170,34 @@ async def update_courier_phone(message: Message, state: FSMContext):
         parse_mode="HTML",
     )
     await state.clear()
+
+
+# Удаление профиля курьера
+@router.callback_query(F.data == "delete_profile_courier")
+async def delete_courier_profile(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.answer(
+        "Вы уверены, что хотите удалить свой профиль?",
+        reply_markup=kb.confirm_delete_courier,
+    )
+
+
+# Подтверждение удаления курьера
+@router.callback_query(F.data == "confirm_delete_courier")
+async def delete_courier(callback: CallbackQuery):
+    await callback.answer()
+    user_id = callback.from_user.id
+
+    await rq.delete_courier_by_user_id(user_id)
+
+    await callback.message.answer("Профиль удален", reply_markup=kb.main)
+
+
+# Отмена удаления бизнеса
+@router.callback_query(F.data == "cancel_delete_courier")
+async def cancel_delete_courier(callback: CallbackQuery):
+    await callback.answer()
+
+    await callback.message.answer(
+        "Удаление профиля отменено", reply_markup=kb.main_courier
+    )
