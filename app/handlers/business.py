@@ -141,7 +141,7 @@ async def edit_profile_business(callback: CallbackQuery):
 
 # Переход назад в профиле бизнеса
 @router.callback_query(F.data == "business_back")
-async def edit_profile_business(callback: CallbackQuery):
+async def business_back(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(
         "Личный кабинет бизнеса", reply_markup=kb.business_profile

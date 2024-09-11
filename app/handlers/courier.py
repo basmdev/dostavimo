@@ -16,6 +16,11 @@ class CourierReg(StatesGroup):
     photo_url = State()
 
 
+class EditCourier(StatesGroup):
+    edit_name = State()
+    edit_contact_phone = State()
+
+
 # Пункт меню "Я курьер"
 @router.message(F.text == "Я курьер")
 async def courier(message: Message):
@@ -104,5 +109,64 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer(
         "Регистрация отменена, хотите начать заново?", reply_markup=kb.courier
+    )
+    await state.clear()
+
+
+# Личный кабинет курьера
+@router.message(F.text == "Личный кабинет курьера")
+async def cabinet_courier(message: Message):
+    await message.answer("Личный кабинет курьера", reply_markup=kb.courier_profile)
+
+
+# Изменение профиля курьера
+@router.callback_query(F.data == "edit_profile_courier")
+async def edit_profile_courier(callback: CallbackQuery):
+    await callback.answer()
+    user_id = callback.from_user.id
+
+    courier = await rq.get_courier_by_user_id(user_id)
+
+    name = courier.courier_name
+    phone = courier.contact_phone
+    await callback.message.edit_text(
+        f"""<b>Имя:</b> {name}
+<b>Контактный телефон:</b> {phone}""",
+        reply_markup=kb.courier_edit_profile,
+        parse_mode="HTML",
+    )
+
+
+# Переход назад в профиле курьера
+@router.callback_query(F.data == "courier_back")
+async def courier_back(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text(
+        "Личный кабинет бизнеса", reply_markup=kb.courier_profile
+    )
+
+
+# Изменение контактного телефона
+@router.callback_query(F.data == "courier_change_phone")
+async def change_courier_phone(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.set_state(EditCourier.edit_contact_phone)
+    await callback.message.answer("Введите новый номер телефона")
+
+
+@router.message(EditCourier.edit_contact_phone)
+async def update_courier_phone(message: Message, state: FSMContext):
+    new_phone = message.text
+    user_id = message.from_user.id
+
+    await rq.update_courier_phone(
+        courier_phone=new_phone,
+        user_id=user_id,
+    )
+
+    await message.answer(
+        f"<b>Новый номер:</b> {new_phone}",
+        reply_markup=kb.main_courier,
+        parse_mode="HTML",
     )
     await state.clear()

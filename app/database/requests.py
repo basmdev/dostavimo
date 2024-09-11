@@ -107,6 +107,26 @@ async def add_delivery(
         await session.commit()
 
 
+# Получение информации о бизнесе
+async def get_business_by_user_id(user_id: int):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Business).where(Business.user_id == user_id)
+        )
+        business = result.scalars().first()
+        return business
+
+
+# Получение информации о курьере
+async def get_courier_by_user_id(user_id: int):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Courier).where(Courier.user_id == user_id)
+        )
+        courier = result.scalars().first()
+        return courier
+
+
 # Обновление названия бизнеса
 async def update_business_name(business_name: str, user_id: int):
     async with async_session() as session:
@@ -163,14 +183,18 @@ async def update_business_phone(business_phone: str, user_id: int):
             raise ValueError("Бизнес для данного пользователя не найден.")
 
 
-# Получение информации о бизнесе
-async def get_business_by_user_id(user_id: int):
+# Обновление контактного телефона курьера
+async def update_courier_phone(courier_phone: str, user_id: int):
     async with async_session() as session:
-        result = await session.execute(
-            select(Business).where(Business.user_id == user_id)
+        courier = await session.scalar(
+            select(Courier).where(Courier.user_id == user_id)
         )
-        business = result.scalars().first()
-        return business
+
+        if courier:
+            courier.contact_phone = courier_phone
+            await session.commit()
+        else:
+            raise ValueError("Курьер не найден")
 
 
 # Удаление профиля бизнеса из базы

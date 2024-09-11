@@ -121,6 +121,27 @@ business_profile = InlineKeyboardMarkup(
     ]
 )
 
+# Личный кабинет курьера
+courier_profile = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Принятые заказы", callback_data="courier_deliveries"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Редактировать профиль", callback_data="edit_profile_courier"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Удалить профиль", callback_data="delete_profile_courier"
+            )
+        ],
+    ]
+)
+
 # Редактирование профиля бизнеса
 business_edit_profile = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -146,6 +167,19 @@ business_edit_profile = InlineKeyboardMarkup(
             )
         ],
         [InlineKeyboardButton(text="Отмена", callback_data="business_back")],
+    ]
+)
+
+# Редактирование профиля курьера
+courier_edit_profile = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Изменить контактный телефон",
+                callback_data="courier_change_phone",
+            )
+        ],
+        [InlineKeyboardButton(text="Отмена", callback_data="courier_back")],
     ]
 )
 
