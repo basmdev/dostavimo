@@ -201,3 +201,27 @@ async def cancel_delete_courier(callback: CallbackQuery):
     await callback.message.answer(
         "Удаление профиля отменено", reply_markup=kb.main_courier
     )
+
+
+# Принятие заказа на доставку
+@router.callback_query(F.data.startswith("accept_delivery_"))
+async def accept_delivery(callback: CallbackQuery):
+    await callback.answer()
+
+    delivery_id = int(callback.data.split("_")[2])
+    delivery = await rq.update_delivery_status(delivery_id, "Принят")
+
+    if delivery:
+        await callback.message.edit_text(
+            f"""Заказ №{delivery.id} был принят!
+<b>Начальный адрес:</b> {delivery.start_geo}
+<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Имя получателя:</b> {delivery.name}
+<b>Номер телефона получателя:</b> {delivery.phone}
+<b>Комментарий:</b> {delivery.comment}
+<b>Статус:</b> {delivery.status}""",
+            parse_mode="HTML",
+        )
+        await callback.message.answer("Вы успешно приняли заказ!")
+    else:
+        await callback.message.answer("Не удалось обновить статус заказа.")

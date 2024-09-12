@@ -17,6 +17,7 @@ class FastDelivery(StatesGroup):
     name = State()
     phone = State()
     comment = State()
+    status = State()
 
 
 # Пункт меню "Срочная доставка"
@@ -50,6 +51,7 @@ async def delivery_fourth(message: Message, state: FSMContext):
 @router.message(FastDelivery.phone)
 async def delivery_fourth(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
+    await state.update_data(status="В ожидании")
     await state.set_state(FastDelivery.comment)
     await message.answer("Укажите комментарий к заказу")
 
@@ -77,7 +79,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
 
-    await rq.add_delivery(
+    delivery_id = await rq.add_delivery(
         start_geo=data["start_geo"],
         end_geo=data["end_geo"],
         name=data["name"],
@@ -90,20 +92,28 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         try:
             await callback.bot.send_message(
                 courier_id,
-                f"""Новый заказ на доставку:
+                f"""Заказ №{delivery_id}:
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
 <b>Номер телефона получателя:</b> {data["phone"]}
-<b>Комментарий:</b> {data['comment']}""",
+<b>Комментарий:</b> {data['comment']}
+<b>Статус:</b> {data['status']}""",
                 parse_mode="HTML",
-                reply_markup=kb.delivery_action,
+                reply_markup=kb.get_delivery_action_keyboard(delivery_id),
             )
         except Exception as e:
             print(f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}")
 
-    await callback.message.answer(
-        "Информация отправлена курьерам, ждите", reply_markup=kb.main
+    await callback.message.edit_text(
+        f"""Заказ №{delivery_id}:
+<b>Начальный адрес:</b> {data['start_geo']}
+<b>Адрес доставки:</b> {data['end_geo']}
+<b>Имя получателя:</b> {data["name"]}
+<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Комментарий:</b> {data['comment']}
+<b>Статус:</b> {data['status']}""",
+        parse_mode="HTML",
     )
     await state.clear()
 

@@ -77,6 +77,7 @@ class FastDelivery(Base):
     name: Mapped[str] = mapped_column(String(64))
     phone: Mapped[str] = mapped_column(String(64))
     comment: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(32), default="В ожидании")
 
 
 async def async_main():

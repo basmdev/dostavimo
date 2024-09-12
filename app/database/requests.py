@@ -105,6 +105,8 @@ async def add_delivery(
         session.add(new_delivery)
 
         await session.commit()
+        await session.refresh(new_delivery)
+        return new_delivery.id
 
 
 # Получение информации о бизнесе
@@ -219,3 +221,15 @@ async def delete_courier_by_user_id(user_id: int):
         )
 
         await session.commit()
+
+
+# Обновление статуса заказа
+async def update_delivery_status(delivery_id: int, new_status: str):
+    async with async_session() as session:
+        result = await session.execute(select(FastDelivery).filter_by(id=delivery_id))
+        delivery = result.scalar_one_or_none()
+        if delivery:
+            delivery.status = new_status
+            await session.commit()
+            await session.refresh(delivery)
+            return delivery
