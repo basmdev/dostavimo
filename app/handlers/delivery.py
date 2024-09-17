@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 import app.keyboards as kb
 import app.database.requests as rq
+from app.database.models import async_session
 from app.database.crud import get_couriers
 
 
@@ -18,6 +19,8 @@ class FastDelivery(StatesGroup):
     phone = State()
     comment = State()
     status = State()
+    message_id = State()
+    chat_id = State()
 
 
 # Пункт меню "Срочная доставка"
@@ -63,6 +66,7 @@ async def delivery_fifth(message: Message, state: FSMContext):
 
     await message.answer(
         f"""Проверьте, все ли правильно?
+
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
@@ -77,6 +81,8 @@ async def delivery_fifth(message: Message, state: FSMContext):
 @router.callback_query(F.data == "delivery_yes")
 async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    await state.update_data(message_id=callback.message.message_id)
+    await state.update_data(chat_id=callback.message.chat.id)
     data = await state.get_data()
 
     delivery_id = await rq.add_delivery(
@@ -85,6 +91,8 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         name=data["name"],
         phone=data["phone"],
         comment=data["comment"],
+        message_id=data["message_id"],
+        chat_id=data["chat_id"],
     )
 
     couriers = await get_couriers()
@@ -93,28 +101,34 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
             await callback.bot.send_message(
                 courier_id,
                 f"""Заказ №{delivery_id}:
+
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
 <b>Номер телефона получателя:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
+
 <b>Статус:</b> {data['status']}""",
                 parse_mode="HTML",
                 reply_markup=kb.get_delivery_action_keyboard(delivery_id),
             )
+
         except Exception as e:
             print(f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}")
 
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
+
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
 <b>Номер телефона получателя:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
+
 <b>Статус:</b> {data['status']}""",
         parse_mode="HTML",
     )
+    await rq.save_chat_and_message_id(delivery_id, data["message_id"], data["chat_id"])
     await state.clear()
 
 

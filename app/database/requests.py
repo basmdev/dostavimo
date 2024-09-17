@@ -91,7 +91,13 @@ async def add_courier(
 
 # Добавление быстрой доставки в базу
 async def add_delivery(
-    start_geo: str, end_geo: str, name: str, phone: str, comment: str
+    start_geo: str,
+    end_geo: str,
+    name: str,
+    phone: str,
+    comment: str,
+    message_id: str,
+    chat_id: str,
 ):
     async with async_session() as session:
         new_delivery = FastDelivery(
@@ -100,6 +106,8 @@ async def add_delivery(
             name=name,
             phone=phone,
             comment=comment,
+            message_id=message_id,
+            chat_id=chat_id,
         )
 
         session.add(new_delivery)
@@ -233,3 +241,31 @@ async def update_delivery_status(delivery_id: int, new_status: str):
             await session.commit()
             await session.refresh(delivery)
             return delivery
+
+
+# Сохранение чата и ID сообщения
+async def save_chat_and_message_id(delivery_id: int, message_id: int, chat_id: int):
+    async with async_session() as session:
+        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+        result = await session.execute(statement)
+        delivery = result.scalars().first()
+
+        if delivery:
+            delivery.message_id = str(message_id)
+            delivery.chat_id = str(chat_id)
+            await session.commit()
+            await session.refresh(delivery)
+        else:
+            print(f"Доставка с ID {delivery_id} не найдена")
+
+
+# Получение чата и ID сообщения
+async def get_message_and_chat_id(delivery_id: int):
+    async with async_session() as session:
+        statement = select(FastDelivery.message_id, FastDelivery.chat_id).where(
+            FastDelivery.id == delivery_id
+        )
+        result = await session.execute(statement)
+        message_id, chat_id = result.fetchone()
+
+        return message_id, chat_id
