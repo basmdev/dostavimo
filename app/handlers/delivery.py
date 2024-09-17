@@ -70,7 +70,7 @@ async def delivery_fifth(message: Message, state: FSMContext):
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
-<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Телефон получателя:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
@@ -105,7 +105,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
-<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Телефон получателя:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
 
 <b>Статус:</b> {data['status']}""",
@@ -122,7 +122,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Имя получателя:</b> {data["name"]}
-<b>Номер телефона получателя:</b> {data["phone"]}
+<b>Телефон получателя:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
 
 <b>Статус:</b> {data['status']}""",

@@ -209,7 +209,11 @@ async def accept_delivery(callback: CallbackQuery):
     await callback.answer()
 
     delivery_id = int(callback.data.split("_")[2])
-    delivery = await rq.update_delivery_status(delivery_id, "Принят курьером")
+    courier_id = callback.from_user.id
+    delivery = await rq.update_delivery_status(
+        delivery_id, "Принято курьером", courier_id=courier_id
+    )
+    courier = await rq.get_courier_by_user_id(courier_id)
 
     if delivery:
         await callback.message.edit_text(
@@ -218,7 +222,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
 <b>Имя получателя:</b> {delivery.name}
-<b>Номер телефона получателя:</b> {delivery.phone}
+<b>Телефон получателя:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
 <b>Статус:</b> {delivery.status}""",
@@ -239,11 +243,16 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
 <b>Имя получателя:</b> {delivery.name}
-<b>Номер телефона получателя:</b> {delivery.phone}
+<b>Телефон получателя:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
 <b>Статус:</b> {delivery.status}"""
                 ),
+                parse_mode="HTML",
+            )
+            await callback.message.answer(
+                f"""<b>Курьер:</b> {courier.courier_name}
+<b>Телефон курьера:</b> {courier.contact_phone}""",
                 parse_mode="HTML",
             )
         else:

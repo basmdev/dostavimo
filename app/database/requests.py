@@ -232,15 +232,24 @@ async def delete_courier_by_user_id(user_id: int):
 
 
 # Обновление статуса заказа
-async def update_delivery_status(delivery_id: int, new_status: str):
+async def update_delivery_status(
+    delivery_id: int, new_status: str, courier_id: int = None
+):
     async with async_session() as session:
-        result = await session.execute(select(FastDelivery).filter_by(id=delivery_id))
-        delivery = result.scalar_one_or_none()
+        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+        result = await session.execute(statement)
+        delivery = result.scalars().first()
+
         if delivery:
             delivery.status = new_status
+            if courier_id:
+                delivery.courier_id = courier_id  # Сохраняем ID курьера
             await session.commit()
             await session.refresh(delivery)
             return delivery
+        else:
+            print(f"Заказ с ID {delivery_id} не найден")
+            return None
 
 
 # Сохранение чата и ID сообщения
