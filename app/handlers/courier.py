@@ -212,7 +212,7 @@ async def accept_delivery(callback: CallbackQuery):
     delivery = await rq.get_delivery_by_id(delivery_id)
 
     if delivery.status != "В ожидании":
-        await callback.message.answer("Заказ принят другим курьером")
+        await callback.message.answer(f"Заказ №{delivery.id} принят другим курьером")
         return
 
     courier_id = callback.from_user.id
