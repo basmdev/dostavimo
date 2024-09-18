@@ -278,3 +278,15 @@ async def get_message_and_chat_id(delivery_id: int):
         message_id, chat_id = result.fetchone()
 
         return message_id, chat_id
+
+
+# Получение доставки по ID
+async def get_delivery_by_id(delivery_id: int):
+    async with async_session() as session:
+        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+
+        result = await session.execute(statement)
+
+        delivery = result.scalar_one_or_none()
+
+        return delivery
