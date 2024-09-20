@@ -270,3 +270,11 @@ async def accept_delivery(callback: CallbackQuery):
 
     except Exception as e:
         print(f"Не удалось отредактировать сообщение: {e}")
+
+# Отмена заказа на доставку
+@router.callback_query(F.data.startswith("decline_delivery_"))
+async def decline_delivery(callback: CallbackQuery):
+    await callback.answer()
+    delivery_id = int(callback.data.split("_")[2])
+    delivery = await rq.get_delivery_by_id(delivery_id)
+    await callback.message.edit_text(f"Заказ №{delivery.id} отменен")
