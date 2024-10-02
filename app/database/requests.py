@@ -147,7 +147,7 @@ async def update_business_name(business_name: str, user_id: int):
             business.business_name = business_name
             await session.commit()
         else:
-            raise ValueError("Бизнес для данного пользователя не найден.")
+            raise ValueError("Бизнес для данного пользователя не найден")
 
 
 # Обновление адреса бизнеса
@@ -161,7 +161,7 @@ async def update_business_address(business_address: str, user_id: int):
             business.address = business_address
             await session.commit()
         else:
-            raise ValueError("Бизнес для данного пользователя не найден.")
+            raise ValueError("Бизнес для данного пользователя не найден")
 
 
 # Обновление контактного лица бизнеса
@@ -175,7 +175,7 @@ async def update_business_person(business_person: str, user_id: int):
             business.contact_person = business_person
             await session.commit()
         else:
-            raise ValueError("Бизнес для данного пользователя не найден.")
+            raise ValueError("Бизнес для данного пользователя не найден")
 
 
 # Обновление контактного телефона бизнеса
@@ -189,7 +189,7 @@ async def update_business_phone(business_phone: str, user_id: int):
             business.contact_phone = business_phone
             await session.commit()
         else:
-            raise ValueError("Бизнес для данного пользователя не найден.")
+            raise ValueError("Бизнес для данного пользователя не найден")
 
 
 # Обновление контактного телефона курьера
@@ -242,12 +242,11 @@ async def update_delivery_status(
         if delivery:
             delivery.status = new_status
             if courier_id:
-                delivery.courier_id = courier_id  # Сохраняем ID курьера
+                delivery.courier_id = courier_id
             await session.commit()
             await session.refresh(delivery)
             return delivery
         else:
-            print(f"Заказ с ID {delivery_id} не найден")
             return None
 
 
@@ -264,7 +263,7 @@ async def save_chat_and_message_id(delivery_id: int, message_id: int, chat_id: i
             await session.commit()
             await session.refresh(delivery)
         else:
-            print(f"Доставка с ID {delivery_id} не найдена")
+            return None
 
 
 # Получение чата и ID сообщения
@@ -317,5 +316,4 @@ async def get_order_details(order_id: int):
         if order:
             return order
         else:
-            print(f"Заказ с ID {order_id} не найден")
             return None

@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, Message
 import app.database.requests as rq
 import app.keyboards as kb
 
-
 COURIER_PAGES = 7
 
 router = Router()
@@ -100,7 +99,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
         user_id=data["user_id"],
     )
     await callback.message.answer(
-        "Регистрация прошла успешно!", reply_markup=kb.main_courier
+        "Регистрация прошла успешно", reply_markup=kb.main_courier
     )
     await state.clear()
 
@@ -266,12 +265,10 @@ async def accept_delivery(callback: CallbackQuery):
                 parse_mode="HTML",
             )
         else:
-            print(
-                f"Не удалось найти message_id и chat_id для доставки с ID {delivery_id}"
-            )
+            return None
 
     except Exception as e:
-        print(f"Не удалось отредактировать сообщение: {e}")
+        raise Exception(f"Не удалось отредактировать сообщение: {e}")
 
 
 # Отмена заказа на доставку

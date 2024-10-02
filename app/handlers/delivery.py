@@ -113,7 +113,9 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
             )
 
         except Exception as e:
-            print(f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}")
+            raise Exception(
+                f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}"
+            )
 
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
