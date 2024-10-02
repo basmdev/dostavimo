@@ -232,6 +232,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Телефон получателя:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
+<b>Цена:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}""",
             parse_mode="HTML",
         )
@@ -253,6 +254,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Телефон получателя:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
+<b>Цена доставки:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}"""
                 ),
                 parse_mode="HTML",
@@ -261,7 +263,8 @@ async def accept_delivery(callback: CallbackQuery):
                 f"""Заказ №{delivery.id}:
 
 <b>Ваш курьер:</b> {courier.courier_name}
-<b>Телефон курьера:</b> {courier.contact_phone}""",
+<b>Телефон курьера:</b> {courier.contact_phone}
+<b>К оплате:</b> {delivery.price}""",
                 parse_mode="HTML",
             )
         else:
@@ -332,7 +335,7 @@ async def order_detail(callback: CallbackQuery):
 
     order_details = await rq.get_order_details(order_id)
 
-    details_text = f"""<b>Заказ №{order_id}:</b>
+    details_text = f"""Заказ №{order_id}:
 
 <b>Начальный адрес:</b> {order_details.start_geo}
 <b>Адрес доставки:</b> {order_details.end_geo}

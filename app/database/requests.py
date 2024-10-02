@@ -94,6 +94,7 @@ async def add_delivery(
     end_geo: str,
     name: str,
     phone: str,
+    price: int,
     comment: str,
     message_id: str,
     chat_id: str,
@@ -104,6 +105,7 @@ async def add_delivery(
             end_geo=end_geo,
             name=name,
             phone=phone,
+            price=price,
             comment=comment,
             message_id=message_id,
             chat_id=chat_id,
@@ -318,3 +320,14 @@ async def get_order_details(order_id: int):
             return order
         else:
             return None
+
+
+# Изменение цены заказа
+async def update_delivery_price(delivery_id: int, new_price: int):
+    async with async_session() as session:
+        delivery = await session.scalar(select(FastDelivery).where(FastDelivery.id == delivery_id))
+        if delivery:
+            delivery.price = new_price
+            await session.commit()
+        else:
+            raise ValueError("Доставка не найдена")

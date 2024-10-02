@@ -219,3 +219,13 @@ confirm_delete_courier = InlineKeyboardMarkup(
         ]
     ]
 )
+
+# Клавиатура для изменения цены
+def get_price_adjustment_keyboard(delivery_id: int):
+    buttons = [
+        InlineKeyboardButton(text="-10", callback_data=f"adjust_price:{delivery_id}:-10"),
+        InlineKeyboardButton(text="+10", callback_data=f"adjust_price:{delivery_id}:+10"),
+    ]
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
