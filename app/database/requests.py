@@ -297,6 +297,7 @@ async def get_courier_deliveries(user_id: int, page: int, per_page: int):
         stmt = (
             select(FastDelivery)
             .where(FastDelivery.courier_id == user_id)
+            .order_by(FastDelivery.id.desc())
             .offset(offset)
             .limit(per_page)
         )

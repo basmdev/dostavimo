@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 import app.database.requests as rq
 import app.keyboards as kb
 
-COURIER_PAGES = 7
+COURIER_PAGES = 10
 
 router = Router()
 
