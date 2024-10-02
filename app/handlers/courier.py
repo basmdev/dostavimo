@@ -1,11 +1,13 @@
 from aiogram import F, Router
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import CallbackQuery, Message
 
-import app.keyboards as kb
 import app.database.requests as rq
+import app.keyboards as kb
 
+
+COURIER_PAGES = 7
 
 router = Router()
 
@@ -142,7 +144,7 @@ async def edit_profile_courier(callback: CallbackQuery):
 async def courier_back(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text(
-        "Личный кабинет бизнеса", reply_markup=kb.courier_profile
+        "Личный кабинет курьера", reply_markup=kb.courier_profile
     )
 
 
@@ -271,6 +273,7 @@ async def accept_delivery(callback: CallbackQuery):
     except Exception as e:
         print(f"Не удалось отредактировать сообщение: {e}")
 
+
 # Отмена заказа на доставку
 @router.callback_query(F.data.startswith("decline_delivery_"))
 async def decline_delivery(callback: CallbackQuery):
@@ -278,3 +281,66 @@ async def decline_delivery(callback: CallbackQuery):
     delivery_id = int(callback.data.split("_")[2])
     delivery = await rq.get_delivery_by_id(delivery_id)
     await callback.message.edit_text(f"Заказ №{delivery.id} отменен")
+
+
+# Принятые заказы
+@router.callback_query(F.data.startswith("courier_deliveries"))
+async def courier_deliveries(callback: CallbackQuery):
+    await callback.answer()
+
+    user_id = callback.from_user.id
+    page = int(callback.data.split(":")[1]) if ":" in callback.data else 1
+    per_page = COURIER_PAGES
+
+    deliveries = await rq.get_courier_deliveries(user_id, page, per_page)
+
+    if not deliveries:
+        await callback.message.answer("История заказов пуста")
+        return
+
+    keyboard_builder = kb.InlineKeyboardBuilder()
+
+    for delivery in deliveries:
+        button_text = f"Заказ №{delivery.id}"
+        button_callback_data = f"order_detail:{delivery.id}"
+        keyboard_builder.button(text=button_text, callback_data=button_callback_data)
+
+    if page > 1:
+        keyboard_builder.button(
+            text="Назад", callback_data=f"courier_deliveries:{page - 1}"
+        )
+
+    if len(deliveries) == per_page:
+        next_deliveries = await rq.get_courier_deliveries(user_id, page + 1, per_page)
+        if next_deliveries:
+            keyboard_builder.button(
+                text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
+            )
+
+    keyboard_builder.adjust(2)
+
+    keyboard = keyboard_builder.as_markup()
+
+    if callback.message:
+        await callback.message.edit_text(
+            "История принятых заказов", reply_markup=keyboard
+        )
+
+
+# Детали принятого заказа
+@router.callback_query(F.data.startswith("order_detail:"))
+async def order_detail(callback: CallbackQuery):
+    await callback.answer()
+    order_id = int(callback.data.split(":")[1])
+
+    order_details = await rq.get_order_details(order_id)
+
+    details_text = f"""<b>Заказ №{order_id}:</b>
+
+<b>Начальный адрес:</b> {order_details.start_geo}
+<b>Адрес доставки:</b> {order_details.end_geo}
+<b>Имя получателя:</b> {order_details.name}
+<b>Телефон получателя:</b> {order_details.phone}
+<b>Комментарий:</b> {order_details.comment}"""
+
+    await callback.message.answer(details_text, parse_mode="HTML")

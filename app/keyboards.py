@@ -1,10 +1,10 @@
 from aiogram.types import (
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-    InlineKeyboardMarkup,
     InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
 )
-
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Главная клавиатура
 main = ReplyKeyboardMarkup(
@@ -135,7 +135,7 @@ courier_profile = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="Принятые заказы", callback_data="courier_deliveries"
+                text="История принятых заказов", callback_data="courier_deliveries"
             )
         ],
         [

@@ -1,10 +1,10 @@
 from aiogram import Router
 
-from .start import router as start_router
 from .business import router as business_router
 from .courier import router as courier_router
 from .delivery import router as delivery_router
 from .help import router as help_router
+from .start import router as start_router
 
 router = Router()
 

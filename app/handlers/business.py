@@ -1,11 +1,10 @@
 from aiogram import F, Router
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import CallbackQuery, Message
 
-import app.keyboards as kb
 import app.database.requests as rq
-
+import app.keyboards as kb
 
 router = Router()
 

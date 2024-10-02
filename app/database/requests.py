@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import select, delete, update
+from sqlalchemy import delete, select, update
 
-from app.database.models import async_session
-from app.database.models import User, Business, Courier, FastDelivery
+from app.database.models import Business, Courier, FastDelivery, User, async_session
 
 
 # Добавление пользователя в базу
@@ -290,3 +289,33 @@ async def get_delivery_by_id(delivery_id: int):
         delivery = result.scalar_one_or_none()
 
         return delivery
+
+
+# Список заказов курьера
+async def get_courier_deliveries(user_id: int, page: int, per_page: int):
+    async with async_session() as session:
+        offset = (page - 1) * per_page
+        stmt = (
+            select(FastDelivery)
+            .where(FastDelivery.courier_id == user_id)
+            .offset(offset)
+            .limit(per_page)
+        )
+        result = await session.execute(stmt)
+        deliveries = result.scalars().all()
+
+        return deliveries
+
+
+# Получение деталей заказа по ID
+async def get_order_details(order_id: int):
+    async with async_session() as session:
+        statement = select(FastDelivery).where(FastDelivery.id == order_id)
+        result = await session.execute(statement)
+        order = result.scalar_one_or_none()
+
+        if order:
+            return order
+        else:
+            print(f"Заказ с ID {order_id} не найден")
+            return None

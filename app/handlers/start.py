@@ -4,11 +4,10 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from app.database.crud import get_user_has_business, get_user_is_courier
-import app.keyboards as kb
 import app.database.requests as rq
+import app.keyboards as kb
+from app.database.crud import get_user_has_business, get_user_is_courier
 from app.database.models import async_session
-
 
 router = Router()
 
