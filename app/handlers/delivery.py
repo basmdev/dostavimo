@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, Message
 import app.database.requests as rq
 import app.keyboards as kb
 from app.database.crud import get_couriers
-from app.database.models import async_session
 
 router = Router()
 
@@ -23,25 +22,25 @@ class FastDelivery(StatesGroup):
     chat_id = State()
 
 
-# Пункт меню "Срочная доставка"
+# Кнопка "Срочная доставка"
 @router.message(F.text == "Срочная доставка")
 async def delivery_first(message: Message, state: FSMContext):
     await state.set_state(FastDelivery.start_geo)
-    await message.answer("Укажите адрес, откуда забирать?")
+    await message.answer("Напишите адрес, откуда забирать?")
 
 
 @router.message(FastDelivery.start_geo)
 async def delivery_second(message: Message, state: FSMContext):
     await state.update_data(start_geo=message.text)
     await state.set_state(FastDelivery.end_geo)
-    await message.answer("Укажите адрес, куда доставить?")
+    await message.answer("Напишите адрес, куда доставить?")
 
 
 @router.message(FastDelivery.end_geo)
 async def delivery_third(message: Message, state: FSMContext):
     await state.update_data(end_geo=message.text)
     await state.set_state(FastDelivery.name)
-    await message.answer("Имя получателя?")
+    await message.answer("Как зовут получателя?")
 
 
 @router.message(FastDelivery.name)
@@ -55,14 +54,14 @@ async def delivery_fourth(message: Message, state: FSMContext):
 async def delivery_fourth(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
     await state.set_state(FastDelivery.price)
-    await message.answer("Укажите цену доставки")
+    await message.answer("Сколько заплатите за доставку?")
 
 
 @router.message(FastDelivery.price)
 async def delivery_fifth(message: Message, state: FSMContext):
     await state.update_data(price=message.text)
     await state.set_state(FastDelivery.comment)
-    await message.answer("Укажите комментарий к заказу")
+    await message.answer("Нужно ли что-нибудь еще сообщить курьеру?")
 
 
 @router.message(FastDelivery.comment)
@@ -76,9 +75,9 @@ async def delivery_sixth(message: Message, state: FSMContext):
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
-<b>Имя получателя:</b> {data["name"]}
-<b>Телефон получателя:</b> {data["phone"]}
-<b>Цена доставки:</b> {data["price"]}
+<b>Получатель:</b> {data["name"]}
+<b>Телефон:</b> {data["phone"]}
+<b>Цена за доставку:</b> {data["price"]}
 <b>Комментарий:</b> {data['comment']}""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
@@ -106,34 +105,28 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 
     couriers = await get_couriers()
     for courier_id in couriers:
-        try:
-            await callback.bot.send_message(
-                courier_id,
-                f"""Заказ №{delivery_id}:
+        await callback.bot.send_message(
+            courier_id,
+            f"""Заказ №{delivery_id}:
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
 
 <b>Статус:</b> {data['status']}""",
-                parse_mode="HTML",
-                reply_markup=kb.get_more_keyboard(delivery_id),
-            )
-
-        except Exception as e:
-            raise Exception(
-                f"Не удалось отправить сообщение курьеру с ID {courier_id}: {e}"
-            )
+            parse_mode="HTML",
+            reply_markup=kb.get_more_keyboard(delivery_id),
+        )
 
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
-<b>Имя получателя:</b> {data["name"]}
-<b>Телефон получателя:</b> {data["phone"]}
+<b>Получатель:</b> {data["name"]}
+<b>Телефон:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
 
-<b>Цена доставки:</b> {data["price"]}
+<b>Цена за доставку:</b> {data["price"]}
 <b>Статус:</b> {data['status']}""",
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
@@ -156,29 +149,22 @@ async def adjust_price(callback: CallbackQuery):
     await callback.answer()
 
     delivery_id, adjustment = map(int, callback.data.split(":")[1:])
-    adjustment_value = int(adjustment)
-
     delivery = await rq.get_delivery_by_id(delivery_id)
+    delivery.price += int(adjustment)
 
-    if delivery:
-        new_price = delivery.price + adjustment_value
-        delivery.price = new_price
+    await rq.update_delivery_price(delivery_id, delivery.price)
 
-        await rq.update_delivery_price(delivery_id, new_price)
-
-        await callback.message.edit_text(
-            f"""Заказ №{delivery_id}:
+    await callback.message.edit_text(
+        f"""Заказ №{delivery_id}:
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Имя получателя:</b> {delivery.name}
-<b>Телефон получателя:</b> {delivery.phone}
+<b>Получатель:</b> {delivery.name}
+<b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена доставки:</b> {new_price}
+<b>Цена за доставку:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}""",
-            parse_mode="HTML",
-            reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
-        )
-    else:
-        await callback.message.answer("Доставка не найдена")
+        parse_mode="HTML",
+        reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
+    )

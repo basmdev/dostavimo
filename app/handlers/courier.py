@@ -2,6 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
@@ -22,7 +23,7 @@ class EditCourier(StatesGroup):
     edit_contact_phone = State()
 
 
-# Пункт меню "Я курьер"
+# Кнопка "Я курьер"
 @router.message(F.text == "Я курьер")
 async def courier(message: Message):
     await message.answer("Желаете пройти регистрацию?", reply_markup=kb.courier)
@@ -62,7 +63,7 @@ async def courier_reg_third(message: Message, state: FSMContext):
 @router.message(CourierReg.photo_url)
 async def courier_reg_fourth(message: Message, state: FSMContext):
     if not message.photo:
-        await message.answer("Пожалуйста, отправьте фото паспорта")
+        await message.answer("Отправьте фото своего паспорта")
         return
 
     photo_id = message.photo[-1].file_id
@@ -79,7 +80,8 @@ async def courier_reg_fourth(message: Message, state: FSMContext):
 
     data = await state.get_data()
     await message.answer(
-        f"""Проверьте, все ли правильно:
+        f"""Проверьте, все ли правильно?
+
 <b>Имя:</b> {data["courier_name"]}
 <b>Телефон:</b> {data["contact_phone"]}""",
         parse_mode="HTML",
@@ -132,7 +134,7 @@ async def edit_profile_courier(callback: CallbackQuery):
     phone = courier.contact_phone
     await callback.message.edit_text(
         f"""<b>Имя:</b> {name}
-<b>Контактный телефон:</b> {phone}""",
+<b>Телефон:</b> {phone}""",
         reply_markup=kb.courier_edit_profile,
         parse_mode="HTML",
     )
@@ -213,7 +215,9 @@ async def accept_delivery(callback: CallbackQuery):
     delivery = await rq.get_delivery_by_id(delivery_id)
 
     if delivery.status != "В ожидании":
-        await callback.message.answer(f"Заказ №{delivery.id} принят другим курьером")
+        await callback.message.answer(
+            f"Извините, заказ №{delivery.id} был принят другим курьером"
+        )
         return
 
     courier_id = callback.from_user.id
@@ -222,56 +226,46 @@ async def accept_delivery(callback: CallbackQuery):
     )
     courier = await rq.get_courier_by_user_id(courier_id)
 
-    if delivery:
-        await callback.message.edit_text(
+    await callback.message.edit_text(
+        f"""Заказ №{delivery.id}:
+
+<b>Начальный адрес:</b> {delivery.start_geo}
+<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Получатель:</b> {delivery.name}
+<b>Телефон:</b> {delivery.phone}
+<b>Комментарий:</b> {delivery.comment}
+
+<b>Цена за доставку:</b> {delivery.price}
+<b>Статус:</b> {delivery.status}""",
+        parse_mode="HTML",
+    )
+
+    message_id, chat_id = await rq.get_message_and_chat_id(delivery_id)
+    await callback.bot.edit_message_text(
+        chat_id=chat_id,
+        message_id=message_id,
+        text=(
             f"""Заказ №{delivery.id}:
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Имя получателя:</b> {delivery.name}
-<b>Телефон получателя:</b> {delivery.phone}
+<b>Получатель:</b> {delivery.name}
+<b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена доставки:</b> {delivery.price}
-<b>Статус:</b> {delivery.status}""",
-            parse_mode="HTML",
-        )
-    else:
-        await callback.message.answer("Статус заказа не обновлен")
-
-    try:
-        message_id, chat_id = await rq.get_message_and_chat_id(delivery_id)
-        if message_id and chat_id:
-            await callback.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=message_id,
-                text=(
-                    f"""Заказ №{delivery.id}:
-
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
-<b>Имя получателя:</b> {delivery.name}
-<b>Телефон получателя:</b> {delivery.phone}
-<b>Комментарий:</b> {delivery.comment}
-
-<b>Цена доставки:</b> {delivery.price}
+<b>Цена за доставку:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}"""
-                ),
-                parse_mode="HTML",
-            )
-            await callback.message.answer(
-                f"""Заказ №{delivery.id}:
+        ),
+        parse_mode="HTML",
+    )
+    await callback.message.answer(
+        f"""Заказ №{delivery.id}:
 
 <b>Ваш курьер:</b> {courier.courier_name}
 <b>Телефон курьера:</b> {courier.contact_phone}
 <b>К оплате:</b> {delivery.price}""",
-                parse_mode="HTML",
-            )
-        else:
-            return None
-
-    except Exception as e:
-        raise Exception(f"Не удалось отредактировать сообщение: {e}")
+        parse_mode="HTML",
+    )
 
 
 # Отмена заказа на доставку
@@ -280,7 +274,7 @@ async def decline_delivery(callback: CallbackQuery):
     await callback.answer()
     delivery_id = int(callback.data.split("_")[2])
     delivery = await rq.get_delivery_by_id(delivery_id)
-    message_text = f"Заказ №{delivery.id} скрыт"
+    message_text = f"Детали заказа №{delivery.id} скрыты"
     await callback.message.edit_text(
         text=message_text,
         parse_mode="HTML",
@@ -303,7 +297,7 @@ async def courier_deliveries(callback: CallbackQuery):
         await callback.message.answer("История заказов пуста")
         return
 
-    keyboard_builder = kb.InlineKeyboardBuilder()
+    keyboard_builder = InlineKeyboardBuilder()
 
     for delivery in deliveries:
         button_text = f"Заказ №{delivery.id}"
@@ -344,8 +338,9 @@ async def order_detail(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {order_details.start_geo}
 <b>Адрес доставки:</b> {order_details.end_geo}
-<b>Имя получателя:</b> {order_details.name}
-<b>Телефон получателя:</b> {order_details.phone}
+<b>Получатель:</b> {order_details.name}
+<b>Телефон:</b> {order_details.phone}
+<b>Цена за доставку:</b> {order_details.price}
 <b>Комментарий:</b> {order_details.comment}"""
 
     await callback.message.answer(details_text, parse_mode="HTML")
@@ -360,22 +355,19 @@ async def delivery_more(callback: CallbackQuery):
 
     delivery = await rq.get_delivery_by_id(delivery_id)
 
-    if delivery:
-        message_text = f"""Заказ №{delivery.id}:
+    message_text = f"""Заказ №{delivery.id}:
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Имя получателя:</b> {delivery.name}
-<b>Телефон получателя:</b> {delivery.phone}
+<b>Получатель:</b> {delivery.name}
+<b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена доставки:</b> {delivery.price}
+<b>Цена за доставку:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}"""
 
-        await callback.message.edit_text(
-            text=message_text,
-            parse_mode="HTML",
-            reply_markup=kb.get_delivery_action_keyboard(delivery_id),
-        )
-    else:
-        await callback.message.edit_text("Информация о заказе не найдена")
+    await callback.message.edit_text(
+        text=message_text,
+        parse_mode="HTML",
+        reply_markup=kb.get_delivery_action_keyboard(delivery_id),
+    )

@@ -145,11 +145,8 @@ async def update_business_name(business_name: str, user_id: int):
             select(Business).where(Business.user_id == user_id)
         )
 
-        if business:
-            business.business_name = business_name
-            await session.commit()
-        else:
-            raise ValueError("Бизнес для данного пользователя не найден")
+        business.business_name = business_name
+        await session.commit()
 
 
 # Обновление адреса бизнеса
@@ -159,11 +156,8 @@ async def update_business_address(business_address: str, user_id: int):
             select(Business).where(Business.user_id == user_id)
         )
 
-        if business:
-            business.address = business_address
-            await session.commit()
-        else:
-            raise ValueError("Бизнес для данного пользователя не найден")
+        business.address = business_address
+        await session.commit()
 
 
 # Обновление контактного лица бизнеса
@@ -173,11 +167,8 @@ async def update_business_person(business_person: str, user_id: int):
             select(Business).where(Business.user_id == user_id)
         )
 
-        if business:
-            business.contact_person = business_person
-            await session.commit()
-        else:
-            raise ValueError("Бизнес для данного пользователя не найден")
+        business.contact_person = business_person
+        await session.commit()
 
 
 # Обновление контактного телефона бизнеса
@@ -187,11 +178,8 @@ async def update_business_phone(business_phone: str, user_id: int):
             select(Business).where(Business.user_id == user_id)
         )
 
-        if business:
-            business.contact_phone = business_phone
-            await session.commit()
-        else:
-            raise ValueError("Бизнес для данного пользователя не найден")
+        business.contact_phone = business_phone
+        await session.commit()
 
 
 # Обновление контактного телефона курьера
@@ -201,11 +189,8 @@ async def update_courier_phone(courier_phone: str, user_id: int):
             select(Courier).where(Courier.user_id == user_id)
         )
 
-        if courier:
-            courier.contact_phone = courier_phone
-            await session.commit()
-        else:
-            raise ValueError("Курьер не найден")
+        courier.contact_phone = courier_phone
+        await session.commit()
 
 
 # Удаление профиля бизнеса из базы
@@ -240,16 +225,14 @@ async def update_delivery_status(
         statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
         result = await session.execute(statement)
         delivery = result.scalars().first()
+        delivery.status = new_status
 
-        if delivery:
-            delivery.status = new_status
-            if courier_id:
-                delivery.courier_id = courier_id
-            await session.commit()
-            await session.refresh(delivery)
-            return delivery
-        else:
-            return None
+        if courier_id:
+            delivery.courier_id = courier_id
+
+        await session.commit()
+        await session.refresh(delivery)
+        return delivery
 
 
 # Сохранение чата и ID сообщения
@@ -258,14 +241,10 @@ async def save_chat_and_message_id(delivery_id: int, message_id: int, chat_id: i
         statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
         result = await session.execute(statement)
         delivery = result.scalars().first()
-
-        if delivery:
-            delivery.message_id = str(message_id)
-            delivery.chat_id = str(chat_id)
-            await session.commit()
-            await session.refresh(delivery)
-        else:
-            return None
+        delivery.message_id = str(message_id)
+        delivery.chat_id = str(chat_id)
+        await session.commit()
+        await session.refresh(delivery)
 
 
 # Получение чата и ID сообщения
@@ -315,11 +294,7 @@ async def get_order_details(order_id: int):
         statement = select(FastDelivery).where(FastDelivery.id == order_id)
         result = await session.execute(statement)
         order = result.scalar_one_or_none()
-
-        if order:
-            return order
-        else:
-            return None
+        return order
 
 
 # Изменение цены заказа
@@ -328,8 +303,5 @@ async def update_delivery_price(delivery_id: int, new_price: int):
         delivery = await session.scalar(
             select(FastDelivery).where(FastDelivery.id == delivery_id)
         )
-        if delivery:
-            delivery.price = new_price
-            await session.commit()
-        else:
-            raise ValueError("Доставка не найдена")
+        delivery.price = new_price
+        await session.commit()

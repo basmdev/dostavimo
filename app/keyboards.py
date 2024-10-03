@@ -4,7 +4,6 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # Главная клавиатура
 main = ReplyKeyboardMarkup(
@@ -86,7 +85,7 @@ fast_delivery = InlineKeyboardMarkup(
 )
 
 
-# # Информация о доставке для курьера
+# Действия с заказом для курьера
 def get_delivery_action_keyboard(delivery_id: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -95,7 +94,7 @@ def get_delivery_action_keyboard(delivery_id: int) -> InlineKeyboardMarkup:
                     text="Принять", callback_data=f"accept_delivery_{delivery_id}"
                 ),
                 InlineKeyboardButton(
-                    text="Отклонить", callback_data=f"decline_delivery_{delivery_id}"
+                    text="Скрыть", callback_data=f"decline_delivery_{delivery_id}"
                 ),
             ],
         ]

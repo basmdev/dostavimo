@@ -23,7 +23,7 @@ class EditBusiness(StatesGroup):
     edit_contact_phone = State()
 
 
-# Пункт меню "Я предприниматель"
+# Кнопка "Я предприниматель"
 @router.message(F.text == "Я предприниматель")
 async def business(message: Message):
     await message.answer("Желаете пройти регистрацию?", reply_markup=kb.business)
@@ -73,6 +73,7 @@ async def business_reg_fifth(message: Message, state: FSMContext):
     data = await state.get_data()
     await message.answer(
         f"""Проверьте, все ли правильно?
+
 <b>Название:</b> {data["business_name"]}
 <b>Адрес:</b> {data["address"]}
 <b>Контактное лицо:</b> {data["contact_person"]}
