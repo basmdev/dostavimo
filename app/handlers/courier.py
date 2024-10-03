@@ -232,7 +232,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Телефон получателя:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена:</b> {delivery.price}
+<b>Цена доставки:</b> {delivery.price}
 <b>Статус:</b> {delivery.status}""",
             parse_mode="HTML",
         )
@@ -280,7 +280,12 @@ async def decline_delivery(callback: CallbackQuery):
     await callback.answer()
     delivery_id = int(callback.data.split("_")[2])
     delivery = await rq.get_delivery_by_id(delivery_id)
-    await callback.message.edit_text(f"Заказ №{delivery.id} отменен")
+    message_text = f"Заказ №{delivery.id} скрыт"
+    await callback.message.edit_text(
+        text=message_text,
+        parse_mode="HTML",
+        reply_markup=kb.get_more_keyboard(delivery_id),
+    )
 
 
 # Принятые заказы
@@ -344,3 +349,33 @@ async def order_detail(callback: CallbackQuery):
 <b>Комментарий:</b> {order_details.comment}"""
 
     await callback.message.answer(details_text, parse_mode="HTML")
+
+
+# Подробнее о заказе
+@router.callback_query(F.data.startswith("delivery_more_"))
+async def delivery_more(callback: CallbackQuery):
+    await callback.answer()
+
+    delivery_id = int(callback.data.split("_")[2])
+
+    delivery = await rq.get_delivery_by_id(delivery_id)
+
+    if delivery:
+        message_text = f"""Заказ №{delivery.id}:
+
+<b>Начальный адрес:</b> {delivery.start_geo}
+<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Имя получателя:</b> {delivery.name}
+<b>Телефон получателя:</b> {delivery.phone}
+<b>Комментарий:</b> {delivery.comment}
+
+<b>Цена доставки:</b> {delivery.price}
+<b>Статус:</b> {delivery.status}"""
+
+        await callback.message.edit_text(
+            text=message_text,
+            parse_mode="HTML",
+            reply_markup=kb.get_delivery_action_keyboard(delivery_id),
+        )
+    else:
+        await callback.message.edit_text("Информация о заказе не найдена")

@@ -325,7 +325,9 @@ async def get_order_details(order_id: int):
 # Изменение цены заказа
 async def update_delivery_price(delivery_id: int, new_price: int):
     async with async_session() as session:
-        delivery = await session.scalar(select(FastDelivery).where(FastDelivery.id == delivery_id))
+        delivery = await session.scalar(
+            select(FastDelivery).where(FastDelivery.id == delivery_id)
+        )
         if delivery:
             delivery.price = new_price
             await session.commit()

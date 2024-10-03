@@ -98,12 +98,6 @@ def get_delivery_action_keyboard(delivery_id: int) -> InlineKeyboardMarkup:
                     text="Отклонить", callback_data=f"decline_delivery_{delivery_id}"
                 ),
             ],
-            [
-                InlineKeyboardButton(
-                    text="Сообщить о нарушении",
-                    callback_data=f"report_violation_{delivery_id}",
-                )
-            ],
         ]
     )
     return keyboard
@@ -220,12 +214,31 @@ confirm_delete_courier = InlineKeyboardMarkup(
     ]
 )
 
+
 # Клавиатура для изменения цены
 def get_price_adjustment_keyboard(delivery_id: int):
     buttons = [
-        InlineKeyboardButton(text="-10", callback_data=f"adjust_price:{delivery_id}:-10"),
-        InlineKeyboardButton(text="+10", callback_data=f"adjust_price:{delivery_id}:+10"),
+        InlineKeyboardButton(
+            text="Цена -50", callback_data=f"adjust_price:{delivery_id}:-50"
+        ),
+        InlineKeyboardButton(
+            text="Цена +50", callback_data=f"adjust_price:{delivery_id}:+50"
+        ),
     ]
-    
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
+
+
+# Кнопка "Подробнее о заказе"
+def get_more_keyboard(delivery_id: int):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Подробнее о заказе",
+                    callback_data=f"delivery_more_{delivery_id}",
+                )
+            ]
+        ]
+    )

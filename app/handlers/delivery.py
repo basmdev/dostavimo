@@ -113,14 +113,10 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
-<b>Имя получателя:</b> {data["name"]}
-<b>Телефон получателя:</b> {data["phone"]}
-<b>Комментарий:</b> {data['comment']}
 
-<b>Цена доставки:</b> {data["price"]}
 <b>Статус:</b> {data['status']}""",
                 parse_mode="HTML",
-                reply_markup=kb.get_delivery_action_keyboard(delivery_id),
+                reply_markup=kb.get_more_keyboard(delivery_id),
             )
 
         except Exception as e:
@@ -140,7 +136,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 <b>Цена доставки:</b> {data["price"]}
 <b>Статус:</b> {data['status']}""",
         parse_mode="HTML",
-        reply_markup=kb.get_price_adjustment_keyboard(delivery_id)
+        reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
     )
     await rq.save_chat_and_message_id(delivery_id, data["message_id"], data["chat_id"])
     await state.clear()
@@ -153,6 +149,7 @@ async def no_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Доставка отменена", reply_markup=kb.main)
     await state.clear()
 
+
 # Изменение цены заказа
 @router.callback_query(F.data.startswith("adjust_price:"))
 async def adjust_price(callback: CallbackQuery):
@@ -162,37 +159,12 @@ async def adjust_price(callback: CallbackQuery):
     adjustment_value = int(adjustment)
 
     delivery = await rq.get_delivery_by_id(delivery_id)
-    
+
     if delivery:
         new_price = delivery.price + adjustment_value
         delivery.price = new_price
 
         await rq.update_delivery_price(delivery_id, new_price)
-
-        couriers = await get_couriers()
-        for courier_id in couriers:
-#             try:
-#                 message_id, chat_id = await rq.get_message_and_chat_id(delivery_id)
-#                 if message_id and chat_id:
-#                     await callback.bot.edit_message_text(
-#                         chat_id=chat_id,
-#                         message_id=message_id,
-#                         text=(
-#                             f"""Заказ №{delivery.id}:
-
-# <b>Начальный адрес:</b> {delivery.start_geo}
-# <b>Адрес доставки:</b> {delivery.end_geo}
-# <b>Имя получателя:</b> {delivery.name}
-# <b>Телефон получателя:</b> {delivery.phone}
-# <b>Комментарий:</b> {delivery.comment}
-
-# <b>Цена доставки:</b> {new_price}
-# <b>Статус:</b> {delivery.status}"""
-#                         ),
-#                         parse_mode="HTML",
-#                     )
-#             except Exception as e:
-#                 await callback.message.answer(f"Не удалось обновить сообщение для курьера с ID {courier_id}: {e}")
 
         await callback.message.edit_text(
             f"""Заказ №{delivery_id}:
@@ -210,4 +182,3 @@ async def adjust_price(callback: CallbackQuery):
         )
     else:
         await callback.message.answer("Доставка не найдена")
-    
