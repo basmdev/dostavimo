@@ -227,7 +227,7 @@ async def accept_delivery(callback: CallbackQuery):
     courier = await rq.get_courier_by_user_id(courier_id)
 
     await callback.message.edit_text(
-        f"""Заказ №{delivery.id}:
+        f"""Вы приняли заказ №{delivery.id}:
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
@@ -235,8 +235,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена за доставку:</b> {delivery.price}
-<b>Статус:</b> {delivery.status}""",
+<b>Цена за доставку:</b> {delivery.price} рублей""",
         parse_mode="HTML",
     )
 
@@ -253,7 +252,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена за доставку:</b> {delivery.price}
+<b>Цена за доставку:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}"""
         ),
         parse_mode="HTML",
@@ -263,14 +262,14 @@ async def accept_delivery(callback: CallbackQuery):
 
 <b>Ваш курьер:</b> {courier.courier_name}
 <b>Телефон курьера:</b> {courier.contact_phone}
-<b>К оплате:</b> {delivery.price}""",
+<b>К оплате:</b> {delivery.price} рублей""",
         parse_mode="HTML",
     )
 
 
-# Отмена заказа на доставку
-@router.callback_query(F.data.startswith("decline_delivery_"))
-async def decline_delivery(callback: CallbackQuery):
+# Скрытие заказа
+@router.callback_query(F.data.startswith("hide_delivery_"))
+async def hide_delivery(callback: CallbackQuery):
     await callback.answer()
     delivery_id = int(callback.data.split("_")[2])
     delivery = await rq.get_delivery_by_id(delivery_id)
@@ -340,7 +339,7 @@ async def order_detail(callback: CallbackQuery):
 <b>Адрес доставки:</b> {order_details.end_geo}
 <b>Получатель:</b> {order_details.name}
 <b>Телефон:</b> {order_details.phone}
-<b>Цена за доставку:</b> {order_details.price}
+<b>Цена за доставку:</b> {order_details.price} рублей
 <b>Комментарий:</b> {order_details.comment}"""
 
     await callback.message.answer(details_text, parse_mode="HTML")
@@ -363,8 +362,7 @@ async def delivery_more(callback: CallbackQuery):
 <b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена за доставку:</b> {delivery.price}
-<b>Статус:</b> {delivery.status}"""
+<b>Цена за доставку:</b> {delivery.price} рублей"""
 
     await callback.message.edit_text(
         text=message_text,

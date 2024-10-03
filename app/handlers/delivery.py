@@ -77,7 +77,7 @@ async def delivery_sixth(message: Message, state: FSMContext):
 <b>Адрес доставки:</b> {data['end_geo']}
 <b>Получатель:</b> {data["name"]}
 <b>Телефон:</b> {data["phone"]}
-<b>Цена за доставку:</b> {data["price"]}
+<b>Цена за доставку:</b> {data["price"]} рублей
 <b>Комментарий:</b> {data['comment']}""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
@@ -110,9 +110,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
             f"""Заказ №{delivery_id}:
 
 <b>Начальный адрес:</b> {data['start_geo']}
-<b>Адрес доставки:</b> {data['end_geo']}
-
-<b>Статус:</b> {data['status']}""",
+<b>Адрес доставки:</b> {data['end_geo']}""",
             parse_mode="HTML",
             reply_markup=kb.get_more_keyboard(delivery_id),
         )
@@ -126,7 +124,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 <b>Телефон:</b> {data["phone"]}
 <b>Комментарий:</b> {data['comment']}
 
-<b>Цена за доставку:</b> {data["price"]}
+<b>Цена за доставку:</b> {data["price"]} рублей
 <b>Статус:</b> {data['status']}""",
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
@@ -163,7 +161,7 @@ async def adjust_price(callback: CallbackQuery):
 <b>Телефон:</b> {delivery.phone}
 <b>Комментарий:</b> {delivery.comment}
 
-<b>Цена за доставку:</b> {delivery.price}
+<b>Цена за доставку:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}""",
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
