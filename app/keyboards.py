@@ -20,6 +20,7 @@ main = ReplyKeyboardMarkup(
 # Клавиатура предпринимателя
 main_business = ReplyKeyboardMarkup(
     keyboard=[
+        [KeyboardButton(text="Новая доставка")],
         [KeyboardButton(text="Личный кабинет бизнеса")],
         [KeyboardButton(text="Помощь")],
     ],

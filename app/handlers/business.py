@@ -23,6 +23,17 @@ class EditBusiness(StatesGroup):
     edit_contact_phone = State()
 
 
+class BusinessDelivery(StatesGroup):
+    start_geo = State()
+    end_geo = State()
+    phone = State()
+    client_phone = State()
+    status = State()
+    price = State()
+    message_id = State()
+    chat_id = State()
+
+
 # Кнопка "Я предприниматель"
 @router.message(F.text == "Я предприниматель")
 async def business(message: Message):
@@ -280,4 +291,48 @@ async def cancel_delete_business(callback: CallbackQuery):
 
     await callback.message.answer(
         "Удаление профиля отменено", reply_markup=kb.main_business
+    )
+
+
+# Кнопка "Новая доставка"
+@router.message(F.text == "Новая доставка")
+async def business_delivery_first(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    business = await rq.get_business_by_user_id(user_id)
+
+    await state.update_data(
+        client_phone=business.contact_phone, start_geo=business.address
+    )
+    await state.set_state(BusinessDelivery.end_geo)
+    await message.answer("Напишите адрес, куда доставить?")
+
+
+@router.message(BusinessDelivery.end_geo)
+async def business_delivery_second(message: Message, state: FSMContext):
+    await state.update_data(end_geo=message.text)
+    await state.set_state(BusinessDelivery.phone)
+    await message.answer("Номер получателя для связи?")
+
+
+@router.message(BusinessDelivery.phone)
+async def business_delivery_third(message: Message, state: FSMContext):
+    await state.update_data(phone=message.text)
+    await state.set_state(BusinessDelivery.price)
+    await message.answer("Сколько заплатите за доставку?")
+
+
+@router.message(BusinessDelivery.price)
+async def business_delivery_fourth(message: Message, state: FSMContext):
+    await state.update_data(price=message.text)
+    await state.update_data(status="В ожидании")
+    data = await state.get_data()
+
+    await message.answer(
+        f"""Проверьте, все ли правильно?
+
+<b>Адрес доставки:</b> {data['end_geo']}
+<b>Получатель:</b> {data["phone"]}
+<b>Цена за доставку:</b> {data["price"]} рублей""",
+        parse_mode="HTML",
+        reply_markup=kb.fast_delivery,
     )

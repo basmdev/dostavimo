@@ -139,6 +139,9 @@ async def adjust_price(callback: CallbackQuery):
     delivery = await rq.get_delivery_by_id(delivery_id)
     delivery.price += int(adjustment)
 
+    if delivery.price < 0:
+        delivery.price = 0
+
     await rq.update_delivery_price(delivery_id, delivery.price)
 
     await callback.message.edit_text(
