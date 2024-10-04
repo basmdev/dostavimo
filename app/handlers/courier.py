@@ -1,3 +1,4 @@
+import re
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -219,6 +220,24 @@ async def accept_delivery(callback: CallbackQuery):
         )
         return
 
+    message_text = callback.message.text
+    price_in_message = re.search(r"Цена за доставку:\s*(\d+)\s*рублей", message_text)
+
+    if price_in_message:
+        price_in_message = int(price_in_message.group(1))
+
+        if price_in_message != delivery.price:
+            await callback.message.answer(
+                f"""Цена заказа №{delivery.id} изменена:
+
+<b>Новая цена:</b> {delivery.price} рублей
+
+Все еще хотите принять заказ?""",
+                parse_mode="HTML",
+                reply_markup=kb.price_changed_keyboard(delivery_id),
+            )
+            return
+
     courier_id = callback.from_user.id
     delivery = await rq.update_delivery_status(
         delivery_id, "Принято курьером", courier_id=courier_id
@@ -254,13 +273,15 @@ async def accept_delivery(callback: CallbackQuery):
         ),
         parse_mode="HTML",
     )
-    await callback.message.answer(
-        f"""Заказ №{delivery.id}:
+    await callback.bot.send_message(
+        chat_id=delivery.chat_id,
+        text=f"""Заказ №{delivery.id} принят:
 
 <b>Ваш курьер:</b> {courier.courier_name}
 <b>Телефон курьера:</b> {courier.contact_phone}
 <b>К оплате:</b> {delivery.price} рублей""",
         parse_mode="HTML",
+        reply_to_message_id=delivery.message_id,
     )
 
 
@@ -364,3 +385,11 @@ async def delivery_more(callback: CallbackQuery):
         parse_mode="HTML",
         reply_markup=kb.get_delivery_action_keyboard(delivery_id),
     )
+
+
+# Отказ от доставки
+@router.callback_query(F.data.startswith("delivery_no_"))
+async def no_delivery(callback: CallbackQuery):
+    await callback.answer()
+    delivery_id = int(callback.data.split("_")[2])
+    await callback.message.answer(f"Заказ №{delivery_id} отменен", reply_markup=kb.main)

@@ -1,5 +1,4 @@
 from aiogram.types import (
-    CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -243,3 +242,20 @@ def get_more_keyboard(delivery_id: int):
             ]
         ]
     )
+
+
+# Клавиатура при изменении цены заказа
+def price_changed_keyboard(delivery_id: int) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Принять", callback_data=f"accept_delivery_{delivery_id}"
+                ),
+                InlineKeyboardButton(
+                    text="Отклонить", callback_data=f"delivery_no_{delivery_id}"
+                ),
+            ]
+        ]
+    )
+    return keyboard

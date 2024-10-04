@@ -97,7 +97,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     for courier_id in couriers:
         await callback.bot.send_message(
             courier_id,
-            f"""Заказ №{delivery_id}:
+            f"""Новый заказ №{delivery_id}:
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}""",
