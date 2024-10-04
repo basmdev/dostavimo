@@ -269,8 +269,8 @@ async def get_delivery_by_id(delivery_id: int):
         return delivery
 
 
-# Список заказов курьера
-async def get_courier_deliveries(user_id: int, page: int, per_page: int):
+# Получение списка доставок
+async def get_deliveries(user_id: int, page: int, per_page: int):
     async with async_session() as session:
         offset = (page - 1) * per_page
         stmt = (

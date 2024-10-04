@@ -2,9 +2,11 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
+from config import ORDER_PAGES
 
 router = Router()
 
@@ -336,3 +338,47 @@ async def business_delivery_fourth(message: Message, state: FSMContext):
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
     )
+
+
+# Принятые заказы
+@router.callback_query(F.data.startswith("business_deliveries"))
+async def courier_deliveries(callback: CallbackQuery):
+    await callback.answer()
+
+    user_id = callback.from_user.id
+    page = int(callback.data.split(":")[1]) if ":" in callback.data else 1
+    per_page = ORDER_PAGES
+
+    deliveries = await rq.get_deliveries(user_id, page, per_page)
+
+    if not deliveries:
+        await callback.message.answer("История заказов пуста")
+        return
+
+    keyboard_builder = InlineKeyboardBuilder()
+
+    for delivery in deliveries:
+        button_text = f"Заказ №{delivery.id}"
+        button_callback_data = f"order_detail:{delivery.id}"
+        keyboard_builder.button(text=button_text, callback_data=button_callback_data)
+
+    if page > 1:
+        keyboard_builder.button(
+            text="Назад", callback_data=f"courier_deliveries:{page - 1}"
+        )
+
+    if len(deliveries) == per_page:
+        next_deliveries = await rq.get_deliveries(user_id, page + 1, per_page)
+        if next_deliveries:
+            keyboard_builder.button(
+                text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
+            )
+
+    keyboard_builder.adjust(2)
+
+    keyboard = keyboard_builder.as_markup()
+
+    if callback.message:
+        await callback.message.edit_text(
+            "История заказов на доставку", reply_markup=keyboard
+        )

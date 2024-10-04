@@ -6,8 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
-
-COURIER_PAGES = 10
+from config import ORDER_PAGES
 
 router = Router()
 
@@ -286,9 +285,9 @@ async def courier_deliveries(callback: CallbackQuery):
 
     user_id = callback.from_user.id
     page = int(callback.data.split(":")[1]) if ":" in callback.data else 1
-    per_page = COURIER_PAGES
+    per_page = ORDER_PAGES
 
-    deliveries = await rq.get_courier_deliveries(user_id, page, per_page)
+    deliveries = await rq.get_deliveries(user_id, page, per_page)
 
     if not deliveries:
         await callback.message.answer("История заказов пуста")
@@ -307,7 +306,7 @@ async def courier_deliveries(callback: CallbackQuery):
         )
 
     if len(deliveries) == per_page:
-        next_deliveries = await rq.get_courier_deliveries(user_id, page + 1, per_page)
+        next_deliveries = await rq.get_deliveries(user_id, page + 1, per_page)
         if next_deliveries:
             keyboard_builder.button(
                 text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
