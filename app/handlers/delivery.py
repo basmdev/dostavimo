@@ -13,9 +13,8 @@ router = Router()
 class FastDelivery(StatesGroup):
     start_geo = State()
     end_geo = State()
-    name = State()
     phone = State()
-    comment = State()
+    client_phone = State()
     status = State()
     price = State()
     message_id = State()
@@ -39,34 +38,27 @@ async def delivery_second(message: Message, state: FSMContext):
 @router.message(FastDelivery.end_geo)
 async def delivery_third(message: Message, state: FSMContext):
     await state.update_data(end_geo=message.text)
-    await state.set_state(FastDelivery.name)
-    await message.answer("Как зовут получателя?")
+    await state.set_state(FastDelivery.client_phone)
+    await message.answer("Ваш номер для связи?")
 
 
-@router.message(FastDelivery.name)
+@router.message(FastDelivery.client_phone)
 async def delivery_fourth(message: Message, state: FSMContext):
-    await state.update_data(name=message.text)
+    await state.update_data(client_phone=message.text)
     await state.set_state(FastDelivery.phone)
-    await message.answer("Номер телефона получателя?")
+    await message.answer("Номер получателя для связи?")
 
 
 @router.message(FastDelivery.phone)
-async def delivery_fourth(message: Message, state: FSMContext):
+async def delivery_fifth(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
     await state.set_state(FastDelivery.price)
     await message.answer("Сколько заплатите за доставку?")
 
 
 @router.message(FastDelivery.price)
-async def delivery_fifth(message: Message, state: FSMContext):
-    await state.update_data(price=message.text)
-    await state.set_state(FastDelivery.comment)
-    await message.answer("Нужно ли что-нибудь еще сообщить курьеру?")
-
-
-@router.message(FastDelivery.comment)
 async def delivery_sixth(message: Message, state: FSMContext):
-    await state.update_data(comment=message.text)
+    await state.update_data(price=message.text)
     await state.update_data(status="В ожидании")
     data = await state.get_data()
 
@@ -75,10 +67,9 @@ async def delivery_sixth(message: Message, state: FSMContext):
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
-<b>Получатель:</b> {data["name"]}
-<b>Телефон:</b> {data["phone"]}
-<b>Цена за доставку:</b> {data["price"]} рублей
-<b>Комментарий:</b> {data['comment']}""",
+<b>Получатель:</b> {data["phone"]}
+<b>Заказчик:</b> {data["client_phone"]}
+<b>Цена за доставку:</b> {data["price"]} рублей""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
     )
@@ -95,10 +86,9 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     delivery_id = await rq.add_delivery(
         start_geo=data["start_geo"],
         end_geo=data["end_geo"],
-        name=data["name"],
         phone=data["phone"],
         price=data["price"],
-        comment=data["comment"],
+        client_phone=data["client_phone"],
         message_id=data["message_id"],
         chat_id=data["chat_id"],
     )
@@ -120,9 +110,8 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 
 <b>Начальный адрес:</b> {data['start_geo']}
 <b>Адрес доставки:</b> {data['end_geo']}
-<b>Получатель:</b> {data["name"]}
-<b>Телефон:</b> {data["phone"]}
-<b>Комментарий:</b> {data['comment']}
+<b>Получатель:</b> {data["phone"]}
+<b>Заказчик:</b> {data['client_phone']}
 
 <b>Цена за доставку:</b> {data["price"]} рублей
 <b>Статус:</b> {data['status']}""",
@@ -157,9 +146,8 @@ async def adjust_price(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Получатель:</b> {delivery.name}
-<b>Телефон:</b> {delivery.phone}
-<b>Комментарий:</b> {delivery.comment}
+<b>Получатель:</b> {delivery.phone}
+<b>Заказчик:</b> {delivery.client_phone}
 
 <b>Цена за доставку:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}""",

@@ -92,10 +92,9 @@ async def add_courier(
 async def add_delivery(
     start_geo: str,
     end_geo: str,
-    name: str,
     phone: str,
     price: int,
-    comment: str,
+    client_phone: str,
     message_id: str,
     chat_id: str,
 ):
@@ -103,10 +102,9 @@ async def add_delivery(
         new_delivery = FastDelivery(
             start_geo=start_geo,
             end_geo=end_geo,
-            name=name,
             phone=phone,
             price=price,
-            comment=comment,
+            client_phone=client_phone,
             message_id=message_id,
             chat_id=chat_id,
         )

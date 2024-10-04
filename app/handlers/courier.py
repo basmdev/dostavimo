@@ -231,9 +231,8 @@ async def accept_delivery(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Получатель:</b> {delivery.name}
-<b>Телефон:</b> {delivery.phone}
-<b>Комментарий:</b> {delivery.comment}
+<b>Получатель:</b> {delivery.phone}
+<b>Заказчик:</b> {delivery.client_phone}
 
 <b>Цена за доставку:</b> {delivery.price} рублей""",
         parse_mode="HTML",
@@ -248,9 +247,8 @@ async def accept_delivery(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Получатель:</b> {delivery.name}
-<b>Телефон:</b> {delivery.phone}
-<b>Комментарий:</b> {delivery.comment}
+<b>Получатель:</b> {delivery.phone}
+<b>Заказчик:</b> {delivery.client_phone}
 
 <b>Цена за доставку:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}"""
@@ -337,10 +335,9 @@ async def order_detail(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {order_details.start_geo}
 <b>Адрес доставки:</b> {order_details.end_geo}
-<b>Получатель:</b> {order_details.name}
-<b>Телефон:</b> {order_details.phone}
-<b>Цена за доставку:</b> {order_details.price} рублей
-<b>Комментарий:</b> {order_details.comment}"""
+<b>Получатель:</b> {order_details.phone}
+<b>Заказчик:</b> {order_details.client_phone}
+<b>Цена за доставку:</b> {order_details.price} рублей"""
 
     await callback.message.answer(details_text, parse_mode="HTML")
 
@@ -358,9 +355,8 @@ async def delivery_more(callback: CallbackQuery):
 
 <b>Начальный адрес:</b> {delivery.start_geo}
 <b>Адрес доставки:</b> {delivery.end_geo}
-<b>Получатель:</b> {delivery.name}
-<b>Телефон:</b> {delivery.phone}
-<b>Комментарий:</b> {delivery.comment}
+<b>Получатель:</b> {delivery.phone}
+<b>Заказчик:</b> {delivery.client_phone}
 
 <b>Цена за доставку:</b> {delivery.price} рублей"""
 

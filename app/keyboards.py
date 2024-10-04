@@ -1,4 +1,5 @@
 from aiogram.types import (
+    CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -96,7 +97,7 @@ def get_delivery_action_keyboard(delivery_id: int) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="Скрыть", callback_data=f"hide_delivery_{delivery_id}"
                 ),
-            ],
+            ]
         ]
     )
     return keyboard
