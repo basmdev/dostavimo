@@ -1,4 +1,5 @@
 import re
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -193,7 +194,7 @@ async def delete_courier(callback: CallbackQuery):
 
     await rq.delete_courier_by_user_id(user_id)
 
-    await callback.message.answer("Профиль удален", reply_markup=kb.main)
+    await callback.message.answer("Ваш профиль удален", reply_markup=kb.main)
 
 
 # Отмена удаления бизнеса
@@ -308,7 +309,7 @@ async def courier_deliveries(callback: CallbackQuery):
     page = int(callback.data.split(":")[1]) if ":" in callback.data else 1
     per_page = ORDER_PAGES
 
-    deliveries = await rq.get_deliveries(user_id, page, per_page)
+    deliveries = await rq.get_courier_deliveries(user_id, page, per_page)
 
     if not deliveries:
         await callback.message.answer("История заказов пуста")
@@ -321,13 +322,15 @@ async def courier_deliveries(callback: CallbackQuery):
         button_callback_data = f"order_detail:{delivery.id}"
         keyboard_builder.button(text=button_text, callback_data=button_callback_data)
 
+    keyboard_builder.button(text="Отмена", callback_data="courier_back")
+
     if page > 1:
         keyboard_builder.button(
             text="Назад", callback_data=f"courier_deliveries:{page - 1}"
         )
 
     if len(deliveries) == per_page:
-        next_deliveries = await rq.get_deliveries(user_id, page + 1, per_page)
+        next_deliveries = await rq.get_courier_deliveries(user_id, page + 1, per_page)
         if next_deliveries:
             keyboard_builder.button(
                 text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
@@ -338,9 +341,7 @@ async def courier_deliveries(callback: CallbackQuery):
     keyboard = keyboard_builder.as_markup()
 
     if callback.message:
-        await callback.message.edit_text(
-            "История принятых заказов", reply_markup=keyboard
-        )
+        await callback.message.edit_text("История заказов", reply_markup=keyboard)
 
 
 # Детали принятого заказа

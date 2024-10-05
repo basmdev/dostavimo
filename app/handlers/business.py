@@ -127,7 +127,20 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
 # Личный кабинет бизнеса
 @router.message(F.text == "Личный кабинет бизнеса")
 async def cabinet_business(message: Message):
-    await message.answer("Личный кабинет бизнеса", reply_markup=kb.business_profile)
+    user_id = message.from_user.id
+    active_count = await rq.get_business_deliveries_count(user_id, "В ожидании")
+    total_count = (
+        await rq.get_business_deliveries_count(user_id, "Принято курьером")
+        + active_count
+    )
+    await message.answer(
+        f"""Профиль бизнеса:
+
+<b>Активные заказы:</b> {active_count}
+<b>Всего заказов:</b> {total_count}""",
+        parse_mode="HTML",
+        reply_markup=kb.business_profile,
+    )
 
 
 # Изменение профиля бизнеса
@@ -283,7 +296,7 @@ async def delete_business(callback: CallbackQuery):
 
     await rq.delete_business_by_user_id(user_id)
 
-    await callback.message.answer("Профиль бизнеса удален", reply_markup=kb.main)
+    await callback.message.answer("Ваш профиль удален", reply_markup=kb.main)
 
 
 # Отмена удаления бизнеса
@@ -342,14 +355,30 @@ async def business_delivery_fourth(message: Message, state: FSMContext):
 
 # Принятые заказы
 @router.callback_query(F.data.startswith("business_deliveries"))
-async def courier_deliveries(callback: CallbackQuery):
+async def business_deliveries(callback: CallbackQuery):
     await callback.answer()
 
+    if ":" in callback.data:
+        data_parts = callback.data.split(":")
+        page = int(data_parts[1].split("_")[0])
+        status = (
+            data_parts[1].split("_")[1]
+            if len(data_parts[1].split("_")) > 1
+            else "active"
+        )
+    else:
+        page = 1
+        status = callback.data.split("_")[-1]
+
     user_id = callback.from_user.id
-    page = int(callback.data.split(":")[1]) if ":" in callback.data else 1
     per_page = ORDER_PAGES
 
-    deliveries = await rq.get_deliveries(user_id, page, per_page)
+    if status == "active":
+        status = "В ожидании"
+    elif status == "done":
+        status = "Принято курьером"
+
+    deliveries = await rq.get_business_deliveries(user_id, page, per_page, status)
 
     if not deliveries:
         await callback.message.answer("История заказов пуста")
@@ -362,16 +391,20 @@ async def courier_deliveries(callback: CallbackQuery):
         button_callback_data = f"order_detail:{delivery.id}"
         keyboard_builder.button(text=button_text, callback_data=button_callback_data)
 
+    keyboard_builder.button(text="Отмена", callback_data="business_back")
+
     if page > 1:
         keyboard_builder.button(
-            text="Назад", callback_data=f"courier_deliveries:{page - 1}"
+            text="Назад", callback_data=f"business_deliveries:{page - 1}_{status}"
         )
 
     if len(deliveries) == per_page:
-        next_deliveries = await rq.get_deliveries(user_id, page + 1, per_page)
+        next_deliveries = await rq.get_business_deliveries(
+            user_id, page + 1, per_page, status
+        )
         if next_deliveries:
             keyboard_builder.button(
-                text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
+                text="Вперед", callback_data=f"business_deliveries:{page + 1}_{status}"
             )
 
     keyboard_builder.adjust(2)
@@ -379,6 +412,4 @@ async def courier_deliveries(callback: CallbackQuery):
     keyboard = keyboard_builder.as_markup()
 
     if callback.message:
-        await callback.message.edit_text(
-            "История заказов на доставку", reply_markup=keyboard
-        )
+        await callback.message.edit_text("История заказов", reply_markup=keyboard)

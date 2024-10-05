@@ -81,6 +81,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.update_data(message_id=callback.message.message_id)
     await state.update_data(chat_id=callback.message.chat.id)
+    await state.update_data(business_id=callback.message.chat.id)
     data = await state.get_data()
 
     delivery_id = await rq.add_delivery(
@@ -91,6 +92,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         client_phone=data["client_phone"],
         message_id=data["message_id"],
         chat_id=data["chat_id"],
+        business_id=data["business_id"],
     )
 
     couriers = await get_couriers()

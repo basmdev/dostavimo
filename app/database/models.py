@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (AsyncAttrs, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from config import DATABASE
@@ -51,6 +52,9 @@ class Business(Base):
     contact_phone: Mapped[str] = mapped_column(String(64))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[User] = relationship("User", back_populates="business")
+    deliveries: Mapped[list["FastDelivery"]] = relationship(
+        "FastDelivery", back_populates="business"
+    )
 
 
 class Courier(Base):
@@ -85,6 +89,8 @@ class FastDelivery(Base):
     chat_id: Mapped[str] = mapped_column(String(64))
     courier_id: Mapped[int] = mapped_column(ForeignKey("couriers.id"), nullable=True)
     courier: Mapped[Courier] = relationship("Courier", back_populates="deliveries")
+    business_id: Mapped[int] = mapped_column(ForeignKey("businesses.id"), nullable=True)
+    business: Mapped[Business] = relationship("Business", back_populates="deliveries")
 
 
 async def async_main():

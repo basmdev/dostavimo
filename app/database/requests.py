@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, func, select, update
 
-from app.database.models import Business, Courier, FastDelivery, User, async_session
+from app.database.models import (Business, Courier, FastDelivery, User,
+                                 async_session)
 
 
 # Добавление пользователя в базу
@@ -97,6 +98,7 @@ async def add_delivery(
     client_phone: str,
     message_id: str,
     chat_id: str,
+    business_id: int,
 ):
     async with async_session() as session:
         new_delivery = FastDelivery(
@@ -107,6 +109,7 @@ async def add_delivery(
             client_phone=client_phone,
             message_id=message_id,
             chat_id=chat_id,
+            business_id=business_id,
         )
 
         session.add(new_delivery)
@@ -269,21 +272,50 @@ async def get_delivery_by_id(delivery_id: int):
         return delivery
 
 
-# Получение списка доставок
-async def get_deliveries(user_id: int, page: int, per_page: int):
+# Получение списка заказов курьера
+async def get_courier_deliveries(user_id: int, page: int, per_page: int):
     async with async_session() as session:
         offset = (page - 1) * per_page
-        stmt = (
+        statement = (
             select(FastDelivery)
             .where(FastDelivery.courier_id == user_id)
             .order_by(FastDelivery.id.desc())
             .offset(offset)
             .limit(per_page)
         )
-        result = await session.execute(stmt)
+        result = await session.execute(statement)
         deliveries = result.scalars().all()
 
         return deliveries
+
+
+# Получение списка заказов бизнеса
+async def get_business_deliveries(user_id: int, page: int, per_page: int, status: str):
+    async with async_session() as session:
+        offset = (page - 1) * per_page
+        statement = (
+            select(FastDelivery)
+            .where(FastDelivery.business_id == user_id, FastDelivery.status == status)
+            .order_by(FastDelivery.id.desc())
+            .offset(offset)
+            .limit(per_page)
+        )
+        result = await session.execute(statement)
+        deliveries = result.scalars().all()
+
+        return deliveries
+
+
+# Получение количества активных заказов
+async def get_business_deliveries_count(user_id: int, status: str):
+    async with async_session() as session:
+        statement = select(func.count(FastDelivery.id)).where(
+            FastDelivery.business_id == user_id, FastDelivery.status == status
+        )
+        result = await session.execute(statement)
+        count = result.scalar()
+
+        return count
 
 
 # Получение деталей заказа по ID

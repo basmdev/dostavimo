@@ -1,9 +1,5 @@
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-)
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           KeyboardButton, ReplyKeyboardMarkup)
 
 # Главная клавиатура
 main = ReplyKeyboardMarkup(
@@ -108,7 +104,12 @@ business_profile = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="Мои доставки", callback_data="business_deliveries"
+                text="Активные заказы", callback_data="business_deliveries_active"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Заверешенные заказы", callback_data="business_deliveries_done"
             )
         ],
         [
@@ -129,7 +130,7 @@ courier_profile = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="История принятых заказов", callback_data="courier_deliveries"
+                text="Завершенные заказы", callback_data="courier_deliveries"
             )
         ],
         [
