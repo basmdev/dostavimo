@@ -34,7 +34,7 @@ async def courier(message: Message):
 @router.callback_query(F.data == "courier_no")
 async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.delete()
+    await callback.message.edit_text("Регистрация курьера отменена")
 
 
 # Кнопка регистрации курьера
@@ -44,6 +44,7 @@ async def courier_reg_first(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     await state.update_data(user_id=user_id)
     await state.set_state(CourierReg.courier_name)
+    await callback.message.edit_reply_markup()
     await callback.message.answer("Как Вас зовут?")
 
 
@@ -101,9 +102,8 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
         photo_url=data["photo_url"],
         user_id=data["user_id"],
     )
-    await callback.message.answer(
-        "Регистрация прошла успешно", reply_markup=kb.main_courier
-    )
+    await callback.message.edit_reply_markup()
+    await callback.message.answer("Вы зарегистрированы", reply_markup=kb.main_courier)
     await state.clear()
 
 
@@ -111,6 +111,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "reg_no_courier")
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    await callback.message.edit_reply_markup()
     await callback.message.answer(
         "Регистрация отменена, хотите начать заново?", reply_markup=kb.courier
     )
@@ -322,19 +323,19 @@ async def courier_deliveries(callback: CallbackQuery):
         button_callback_data = f"order_detail:{delivery.id}"
         keyboard_builder.button(text=button_text, callback_data=button_callback_data)
 
-    keyboard_builder.button(text="Отмена", callback_data="courier_back")
-
     if page > 1:
         keyboard_builder.button(
-            text="Назад", callback_data=f"courier_deliveries:{page - 1}"
+            text="<< Назад", callback_data=f"courier_deliveries:{page - 1}"
         )
 
     if len(deliveries) == per_page:
         next_deliveries = await rq.get_courier_deliveries(user_id, page + 1, per_page)
         if next_deliveries:
             keyboard_builder.button(
-                text="Вперед", callback_data=f"courier_deliveries:{page + 1}"
+                text="Вперед >>", callback_data=f"courier_deliveries:{page + 1}"
             )
+
+    keyboard_builder.button(text="Отмена", callback_data="courier_back")
 
     keyboard_builder.adjust(2)
 

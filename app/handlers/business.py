@@ -46,7 +46,7 @@ async def business(message: Message):
 @router.callback_query(F.data == "business_no")
 async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.delete()
+    await callback.message.edit_text("Регистрация бизнеса отменена")
 
 
 # Кнопка регистрации бизнеса
@@ -56,6 +56,7 @@ async def business_reg_first(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     await state.update_data(user_id=user_id)
     await state.set_state(BusinessReg.business_name)
+    await callback.message.edit_reply_markup()
     await callback.message.answer("Как называется Ваш бизнес?")
 
 
@@ -108,8 +109,9 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
         contact_phone=data["contact_phone"],
         user_id=data["user_id"],
     )
+    await callback.message.edit_reply_markup()
     await callback.message.answer(
-        "Регистрация прошла успешно", reply_markup=kb.main_business
+        "Ваш бизнес зарегистрирован", reply_markup=kb.main_business
     )
     await state.clear()
 
@@ -118,7 +120,7 @@ async def confirm_reg(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "reg_no_business")
 async def no_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer(
+    await callback.message.edit_text(
         "Регистрация отменена, хотите начать заново?", reply_markup=kb.business
     )
     await state.clear()
@@ -128,14 +130,16 @@ async def no_reg(callback: CallbackQuery, state: FSMContext):
 @router.message(F.text == "Личный кабинет бизнеса")
 async def cabinet_business(message: Message):
     user_id = message.from_user.id
+    business = await rq.get_business_by_user_id(user_id)
     active_count = await rq.get_business_deliveries_count(user_id, "В ожидании")
     total_count = (
         await rq.get_business_deliveries_count(user_id, "Принято курьером")
         + active_count
     )
     await message.answer(
-        f"""Профиль бизнеса:
+        f"""Профиль бизнеса
 
+<b>Бизнес:</b> {business.business_name}
 <b>Активные заказы:</b> {active_count}
 <b>Всего заказов:</b> {total_count}""",
         parse_mode="HTML",
@@ -169,8 +173,21 @@ async def edit_profile_business(callback: CallbackQuery):
 @router.callback_query(F.data == "business_back")
 async def business_back(callback: CallbackQuery):
     await callback.answer()
+    user_id = callback.from_user.id
+    business = await rq.get_business_by_user_id(user_id)
+    active_count = await rq.get_business_deliveries_count(user_id, "В ожидании")
+    total_count = (
+        await rq.get_business_deliveries_count(user_id, "Принято курьером")
+        + active_count
+    )
     await callback.message.edit_text(
-        "Личный кабинет бизнеса", reply_markup=kb.business_profile
+        f"""Профиль бизнеса
+
+<b>Бизнес:</b> {business.business_name}
+<b>Активные заказы:</b> {active_count}
+<b>Всего заказов:</b> {total_count}""",
+        parse_mode="HTML",
+        reply_markup=kb.business_profile,
     )
 
 
@@ -391,11 +408,9 @@ async def business_deliveries(callback: CallbackQuery):
         button_callback_data = f"order_detail:{delivery.id}"
         keyboard_builder.button(text=button_text, callback_data=button_callback_data)
 
-    keyboard_builder.button(text="Отмена", callback_data="business_back")
-
     if page > 1:
         keyboard_builder.button(
-            text="Назад", callback_data=f"business_deliveries:{page - 1}_{status}"
+            text="<< Назад", callback_data=f"business_deliveries:{page - 1}_{status}"
         )
 
     if len(deliveries) == per_page:
@@ -404,8 +419,11 @@ async def business_deliveries(callback: CallbackQuery):
         )
         if next_deliveries:
             keyboard_builder.button(
-                text="Вперед", callback_data=f"business_deliveries:{page + 1}_{status}"
+                text="Вперед >>",
+                callback_data=f"business_deliveries:{page + 1}_{status}",
             )
+
+    keyboard_builder.button(text="Отмена", callback_data="business_back")
 
     keyboard_builder.adjust(2)
 

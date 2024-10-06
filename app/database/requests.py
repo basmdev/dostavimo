@@ -3,8 +3,7 @@ from typing import Optional
 
 from sqlalchemy import delete, func, select, update
 
-from app.database.models import (Business, Courier, FastDelivery, User,
-                                 async_session)
+from app.database.models import Business, Courier, FastDelivery, User, async_session
 
 
 # Добавление пользователя в базу
