@@ -5,7 +5,6 @@ from aiogram.types import CallbackQuery, Message
 
 import app.database.requests as rq
 import app.keyboards as kb
-from app.database.crud import get_couriers
 
 router = Router()
 
@@ -95,7 +94,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         business_id=data["business_id"],
     )
 
-    couriers = await get_couriers()
+    couriers = await rq.get_couriers()
     for courier_id in couriers:
         await callback.bot.send_message(
             courier_id,

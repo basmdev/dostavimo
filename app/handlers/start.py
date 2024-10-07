@@ -6,7 +6,6 @@ from aiogram.types import Message
 
 import app.database.requests as rq
 import app.keyboards as kb
-from app.database.crud import get_user_has_business, get_user_is_courier
 from app.database.models import async_session
 
 router = Router()
@@ -24,8 +23,8 @@ async def cmd_start(message: Message):
             username=user.username,
             last_interaction=datetime.now(),
         )
-        has_business = await get_user_has_business(user.id, session)
-        is_courier = await get_user_is_courier(user.id, session)
+        has_business = await rq.get_user_has_business(user.id)
+        is_courier = await rq.get_user_is_courier(user.id)
 
         reply_markup = (
             kb.main_business
