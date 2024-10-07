@@ -159,3 +159,26 @@ async def adjust_price(callback: CallbackQuery):
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
     )
+
+
+# Отмена заказа
+@router.callback_query(F.data.startswith("cancel_delivery:"))
+async def cancel_delivery(callback: CallbackQuery):
+    await callback.answer()
+
+    delivery_id = int(callback.data.split(":")[-1])
+    delivery = await rq.get_delivery_by_id(delivery_id)
+
+    await rq.update_delivery_status(delivery_id, "Отменен")
+    await callback.message.edit_text(
+        f"""Заказ №{delivery_id}:
+
+<b>Начальный адрес:</b> {delivery.start_geo}
+<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Получатель:</b> {delivery.phone}
+<b>Заказчик:</b> {delivery.client_phone}
+
+<b>Цена за доставку:</b> {delivery.price} рублей
+<b>Статус:</b> Отменен""",
+        parse_mode="HTML",
+    )

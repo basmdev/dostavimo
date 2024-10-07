@@ -216,9 +216,13 @@ async def accept_delivery(callback: CallbackQuery):
     delivery_id = int(callback.data.split("_")[2])
     delivery = await rq.get_delivery_by_id(delivery_id)
 
+    if delivery.status == "Отменен":
+        await callback.message.answer(f"Заказ №{delivery.id} был отменен заказчиком")
+        return
+
     if delivery.status != "В ожидании":
         await callback.message.answer(
-            f"Извините, заказ №{delivery.id} был принят другим курьером"
+            f"Заказ №{delivery.id} был принят другим курьером"
         )
         return
 
@@ -277,8 +281,9 @@ async def accept_delivery(callback: CallbackQuery):
     )
     await callback.bot.send_message(
         chat_id=delivery.chat_id,
-        text=f"""Заказ №{delivery.id} принят:
+        text=f"""Заказ принят курьером:
 
+<b>Номер заказа:</b> {delivery.id}
 <b>Ваш курьер:</b> {courier.courier_name}
 <b>Телефон курьера:</b> {courier.contact_phone}
 <b>К оплате:</b> {delivery.price} рублей""",

@@ -230,8 +230,13 @@ def get_price_adjustment_keyboard(delivery_id: int):
             text="+50 рублей", callback_data=f"adjust_price:{delivery_id}:+50"
         ),
     ]
+    button_bottom = [
+        InlineKeyboardButton(
+            text="Отменить заказ", callback_data=f"cancel_delivery:{delivery_id}"
+        )
+    ]
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons, button_bottom])
     return keyboard
 
 
