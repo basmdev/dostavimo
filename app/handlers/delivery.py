@@ -5,7 +5,6 @@ from aiogram.types import CallbackQuery, Message
 
 import app.database.requests as rq
 import app.keyboards as kb
-from app.utils import get_coordinates
 
 router = Router()
 
@@ -170,8 +169,6 @@ async def cancel_delivery(callback: CallbackQuery):
     delivery = await rq.get_delivery_by_id(delivery_id)
 
     await rq.update_delivery_status(delivery_id, "Отменен")
-    start = await get_coordinates(delivery.start_geo)
-    end = await get_coordinates(delivery.end_geo)
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
 

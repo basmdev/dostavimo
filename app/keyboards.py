@@ -4,6 +4,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
+from config import REGION
 
 # Главная клавиатура
 main = ReplyKeyboardMarkup(
@@ -88,9 +89,10 @@ fast_delivery = InlineKeyboardMarkup(
 
 # Действия с заказом для курьера
 def get_delivery_action_keyboard(
-    delivery_id: int, start_coordinate, end_coordinate
+    delivery_id: int, start_coordinate: str, end_coordinate: str
 ) -> InlineKeyboardMarkup:
-    yandex_maps_url = f"https://yandex.ru/maps/?rtext={start_coordinate[1]}%2C{start_coordinate[0]}~{end_coordinate[1]}%2C{end_coordinate[0]}&rtt=auto"
+    yandex_url = f"https://yandex.ru/maps/?rtext={REGION} {start_coordinate}~{REGION} {end_coordinate}&rtt=auto"
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -101,18 +103,19 @@ def get_delivery_action_keyboard(
                     text="Скрыть", callback_data=f"hide_delivery_{delivery_id}"
                 ),
             ],
-            [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_maps_url)],
+            [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_url)],
         ]
     )
     return keyboard
 
 
 # Действия с заказом для курьера
-def yandex_maps_for_accepted(start_coordinate, end_coordinate) -> InlineKeyboardMarkup:
-    yandex_maps_url = f"https://yandex.ru/maps/?rtext={start_coordinate[1]}%2C{start_coordinate[0]}~{end_coordinate[1]}%2C{end_coordinate[0]}&rtt=auto"
+def yandex_maps_for_accepted(start_coordinate: str, end_coordinate: str) -> InlineKeyboardMarkup:
+    yandex_url = f"https://yandex.ru/maps/?rtext={REGION} {start_coordinate}~{REGION} {end_coordinate}&rtt=auto"
+    
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_maps_url)]
+            [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_url)]
         ]
     )
     return keyboard
