@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
+from app.utils import get_coordinates
 from config import ORDER_PAGES
 
 router = Router()
@@ -249,6 +250,8 @@ async def accept_delivery(callback: CallbackQuery):
         delivery_id, "Принято курьером", courier_id=courier_id
     )
     courier = await rq.get_courier_by_user_id(courier_id)
+    start_coordinate = await get_coordinates(delivery.start_geo)
+    end_coordinate = await get_coordinates(delivery.end_geo)
 
     await callback.message.edit_text(
         f"""Вы приняли заказ №{delivery.id}:
@@ -260,6 +263,7 @@ async def accept_delivery(callback: CallbackQuery):
 
 <b>Цена за доставку:</b> {delivery.price} рублей""",
         parse_mode="HTML",
+        reply_markup=kb.yandex_maps_for_accepted(start_coordinate, end_coordinate),
     )
 
     message_id, chat_id = await rq.get_message_and_chat_id(delivery_id)
@@ -375,8 +379,9 @@ async def delivery_more(callback: CallbackQuery):
     await callback.answer()
 
     delivery_id = int(callback.data.split("_")[2])
-
     delivery = await rq.get_delivery_by_id(delivery_id)
+    start_coordinate = await get_coordinates(delivery.start_geo)
+    end_coordinate = await get_coordinates(delivery.end_geo)
 
     message_text = f"""Заказ №{delivery.id}:
 
@@ -390,7 +395,9 @@ async def delivery_more(callback: CallbackQuery):
     await callback.message.edit_text(
         text=message_text,
         parse_mode="HTML",
-        reply_markup=kb.get_delivery_action_keyboard(delivery_id),
+        reply_markup=kb.get_delivery_action_keyboard(
+            delivery_id, start_coordinate, end_coordinate
+        ),
     )
 
 
