@@ -4,6 +4,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
+
 from config import REGION
 
 # Главная клавиатура
@@ -110,9 +111,11 @@ def get_delivery_action_keyboard(
 
 
 # Действия с заказом для курьера
-def yandex_maps_for_accepted(start_coordinate: str, end_coordinate: str) -> InlineKeyboardMarkup:
+def yandex_maps_for_accepted(
+    start_coordinate: str, end_coordinate: str
+) -> InlineKeyboardMarkup:
     yandex_url = f"https://yandex.ru/maps/?rtext={REGION} {start_coordinate}~{REGION} {end_coordinate}&rtt=auto"
-    
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_url)]
