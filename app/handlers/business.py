@@ -239,6 +239,7 @@ async def update_business_address(message: Message, state: FSMContext):
 
     await rq.update_business_address(
         business_address=new_address,
+        coordinates=get_coordinates_for_one_address(new_address),
         user_id=user_id,
     )
 
