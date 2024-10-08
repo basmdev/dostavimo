@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
+from app.utils import get_coordinates
 from config import ORDER_PAGES
 
 router = Router()
@@ -253,14 +254,14 @@ async def accept_delivery(callback: CallbackQuery):
     await callback.message.edit_text(
         f"""Вы приняли заказ №{delivery.id}:
 
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Откуда:</b> {delivery.start_geo}
+<b>Куда:</b> {delivery.end_geo}
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
 <b>Цена за доставку:</b> {delivery.price} рублей""",
         parse_mode="HTML",
-        reply_markup=kb.yandex_maps_for_accepted(delivery.start_geo, delivery.end_geo),
+        reply_markup=kb.yandex_maps_for_accepted(delivery.yandex_url),
     )
 
     message_id, chat_id = await rq.get_message_and_chat_id(delivery_id)
@@ -270,8 +271,8 @@ async def accept_delivery(callback: CallbackQuery):
         text=(
             f"""Заказ №{delivery.id}:
 
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Откуда:</b> {delivery.start_geo}
+<b>Куда:</b> {delivery.end_geo}
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
@@ -361,8 +362,8 @@ async def order_detail(callback: CallbackQuery):
 
     details_text = f"""Заказ №{order_id}:
 
-<b>Начальный адрес:</b> {order_details.start_geo}
-<b>Адрес доставки:</b> {order_details.end_geo}
+<b>Откуда:</b> {order_details.start_geo}
+<b>Куда:</b> {order_details.end_geo}
 <b>Получатель:</b> {order_details.phone}
 <b>Заказчик:</b> {order_details.client_phone}
 <b>Цена за доставку:</b> {order_details.price} рублей"""
@@ -380,8 +381,8 @@ async def delivery_more(callback: CallbackQuery):
 
     message_text = f"""Заказ №{delivery.id}:
 
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Откуда:</b> {delivery.start_geo}
+<b>Куда:</b> {delivery.end_geo}
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
@@ -390,9 +391,7 @@ async def delivery_more(callback: CallbackQuery):
     await callback.message.edit_text(
         text=message_text,
         parse_mode="HTML",
-        reply_markup=kb.get_delivery_action_keyboard(
-            delivery_id, delivery.start_geo, delivery.end_geo
-        ),
+        reply_markup=kb.get_delivery_action_keyboard(delivery_id, delivery.yandex_url),
     )
 
 

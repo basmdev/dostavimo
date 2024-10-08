@@ -5,8 +5,6 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
 )
 
-from config import REGION
-
 # Главная клавиатура
 main = ReplyKeyboardMarkup(
     keyboard=[
@@ -90,10 +88,8 @@ fast_delivery = InlineKeyboardMarkup(
 
 # Действия с заказом для курьера
 def get_delivery_action_keyboard(
-    delivery_id: int, start_coordinate: str, end_coordinate: str
+    delivery_id: int, yandex_url: str
 ) -> InlineKeyboardMarkup:
-    yandex_url = f"https://yandex.ru/maps/?rtext={REGION} {start_coordinate}~{REGION} {end_coordinate}&rtt=auto"
-
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -111,11 +107,7 @@ def get_delivery_action_keyboard(
 
 
 # Действия с заказом для курьера
-def yandex_maps_for_accepted(
-    start_coordinate: str, end_coordinate: str
-) -> InlineKeyboardMarkup:
-    yandex_url = f"https://yandex.ru/maps/?rtext={REGION} {start_coordinate}~{REGION} {end_coordinate}&rtt=auto"
-
+def yandex_maps_for_accepted(yandex_url: str) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Перейти в Яндекс.Карты", url=yandex_url)]

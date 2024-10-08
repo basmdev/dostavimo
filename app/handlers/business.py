@@ -6,6 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import app.database.requests as rq
 import app.keyboards as kb
+from app.utils import get_coordinates_for_one_address
 from config import ORDER_PAGES
 
 router = Router()
@@ -14,6 +15,7 @@ router = Router()
 class BusinessReg(StatesGroup):
     business_name = State()
     address = State()
+    coordinates = State()
     contact_person = State()
     contact_phone = State()
 
@@ -102,9 +104,14 @@ async def business_reg_fifth(message: Message, state: FSMContext):
 async def confirm_reg(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
+    await state.update_data(
+        coordinates=get_coordinates_for_one_address(data["address"])
+    )
+    data = await state.get_data()
     await rq.add_business(
         business_name=data["business_name"],
         address=data["address"],
+        coordinates=data["coordinates"],
         contact_person=data["contact_person"],
         contact_phone=data["contact_phone"],
         user_id=data["user_id"],

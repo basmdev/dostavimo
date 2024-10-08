@@ -14,6 +14,16 @@ async def get_user_has_business(user_id: int):
         return user.has_business if user else False
 
 
+# Получение координат бизнеса
+async def get_business_coordinates(user_id: int):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Business).filter(Business.user_id == user_id)
+        )
+        business = result.scalars().first()
+        return business.coordinates
+
+
 # Получение информации о курьере
 async def get_user_is_courier(user_id: int):
     async with async_session() as session:
@@ -69,6 +79,7 @@ async def add_user(
 async def add_business(
     business_name: str,
     address: str,
+    coordinates: str,
     contact_person: str,
     contact_phone: str,
     user_id: int,
@@ -77,6 +88,7 @@ async def add_business(
         new_business = Business(
             business_name=business_name,
             address=address,
+            coordinates=coordinates,
             contact_person=contact_person,
             contact_phone=contact_phone,
             user_id=user_id,
@@ -120,6 +132,7 @@ async def add_delivery(
     end_geo: str,
     phone: str,
     price: int,
+    yandex_url: str,
     client_phone: str,
     message_id: str,
     chat_id: str,
@@ -131,6 +144,7 @@ async def add_delivery(
             end_geo=end_geo,
             phone=phone,
             price=price,
+            yandex_url=yandex_url,
             client_phone=client_phone,
             message_id=message_id,
             chat_id=chat_id,

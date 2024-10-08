@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 import app.database.requests as rq
 import app.keyboards as kb
+from app.utils import get_coordinates, get_coordinates_for_one_address
 
 router = Router()
 
@@ -16,6 +17,7 @@ class FastDelivery(StatesGroup):
     client_phone = State()
     status = State()
     price = State()
+    yandex_url = State()
     message_id = State()
     chat_id = State()
 
@@ -64,8 +66,8 @@ async def delivery_sixth(message: Message, state: FSMContext):
     await message.answer(
         f"""Проверьте, все ли правильно?
 
-<b>Начальный адрес:</b> {data['start_geo']}
-<b>Адрес доставки:</b> {data['end_geo']}
+<b>Откуда:</b> {data['start_geo']}
+<b>Куда:</b> {data['end_geo']}
 <b>Получатель:</b> {data["phone"]}
 <b>Заказчик:</b> {data["client_phone"]}
 <b>Цена за доставку:</b> {data["price"]} рублей""",
@@ -78,9 +80,21 @@ async def delivery_sixth(message: Message, state: FSMContext):
 @router.callback_query(F.data == "delivery_yes")
 async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    user = callback.from_user
     await state.update_data(message_id=callback.message.message_id)
     await state.update_data(chat_id=callback.message.chat.id)
     await state.update_data(business_id=callback.message.chat.id)
+    await state.update_data(coordinates=await rq.get_business_coordinates(user.id))
+    data = await state.get_data()
+
+    has_business = await rq.get_user_has_business(user.id)
+    if has_business:
+        end_coordinates = get_coordinates_for_one_address(data["end_geo"])
+        yandex_url = f"https://yandex.ru/maps/?rtext={data['coordinates']}~{end_coordinates}&rtt=auto"
+    else:
+        yandex_url = get_coordinates(data["start_geo"], data["end_geo"])
+
+    await state.update_data(yandex_url=yandex_url)
     data = await state.get_data()
 
     delivery_id = await rq.add_delivery(
@@ -88,6 +102,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
         end_geo=data["end_geo"],
         phone=data["phone"],
         price=data["price"],
+        yandex_url=data["yandex_url"],
         client_phone=data["client_phone"],
         message_id=data["message_id"],
         chat_id=data["chat_id"],
@@ -100,8 +115,8 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
             courier_id,
             f"""Новый заказ №{delivery_id}:
 
-<b>Начальный адрес:</b> {data['start_geo']}
-<b>Адрес доставки:</b> {data['end_geo']}""",
+<b>Откуда:</b> {data['start_geo']}
+<b>Куда:</b> {data['end_geo']}""",
             parse_mode="HTML",
             reply_markup=kb.get_more_keyboard(delivery_id),
         )
@@ -109,8 +124,8 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
 
-<b>Начальный адрес:</b> {data['start_geo']}
-<b>Адрес доставки:</b> {data['end_geo']}
+<b>Откуда:</b> {data['start_geo']}
+<b>Куда:</b> {data['end_geo']}
 <b>Получатель:</b> {data["phone"]}
 <b>Заказчик:</b> {data['client_phone']}
 
@@ -148,8 +163,8 @@ async def adjust_price(callback: CallbackQuery):
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
 
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Откуда:</b> {delivery.start_geo}
+<b>Куда:</b> {delivery.end_geo}
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
@@ -172,8 +187,8 @@ async def cancel_delivery(callback: CallbackQuery):
     await callback.message.edit_text(
         f"""Заказ №{delivery_id}:
 
-<b>Начальный адрес:</b> {delivery.start_geo}
-<b>Адрес доставки:</b> {delivery.end_geo}
+<b>Откуда:</b> {delivery.start_geo}
+<b>Куда:</b> {delivery.end_geo}
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
