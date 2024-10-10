@@ -190,7 +190,9 @@ async def update_business_name(business_name: str, user_id: int):
 
 
 # Обновление адреса бизнеса
-async def update_business_address(business_address: str, coordinates: str, user_id: int):
+async def update_business_address(
+    business_address: str, coordinates: str, user_id: int
+):
     async with async_session() as session:
         business = await session.scalar(
             select(Business).where(Business.user_id == user_id)
