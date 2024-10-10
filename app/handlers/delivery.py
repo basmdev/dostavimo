@@ -5,11 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 import app.database.requests as rq
 import app.keyboards as kb
-from app.utils import (
-    get_coordinates,
-    get_coordinates_for_one_address,
-    get_static_map_url,
-)
+from app.utils import get_coordinates, get_coordinates_for_one_address
 
 router = Router()
 
@@ -89,19 +85,15 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
     await state.update_data(message_id=callback.message.message_id)
     await state.update_data(chat_id=callback.message.chat.id)
     await state.update_data(business_id=callback.message.chat.id)
-    if has_business:
-        await state.update_data(coordinates=await rq.get_business_coordinates(user.id))
     data = await state.get_data()
 
     end_coordinates = get_coordinates_for_one_address(data["end_geo"])
 
     if has_business:
-        yandex_url = f"https://yandex.ru/maps/?rtext={data['coordinates']}~{end_coordinates}&rtt=auto"
-        static_map_url = get_static_map_url(data["coordinates"], end_coordinates)
+        start_coordinates = await rq.get_business_coordinates(user.id)
+        yandex_url = f"https://yandex.ru/maps/?rtext={start_coordinates}~{end_coordinates}&rtt=auto"
     else:
         yandex_url = get_coordinates(data["start_geo"], data["end_geo"])
-        start_coordinates = get_coordinates_for_one_address(data["start_geo"])
-        static_map_url = get_static_map_url(start_coordinates, end_coordinates)
 
     await state.update_data(yandex_url=yandex_url)
     data = await state.get_data()
