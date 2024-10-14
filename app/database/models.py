@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -23,7 +23,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
-    first_name: Mapped[Optional[str]] = mapped_column(String(64))
+    first_name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     username: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     last_interaction: Mapped[Optional[datetime]] = mapped_column(
@@ -47,13 +47,13 @@ class Business(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     business_name: Mapped[str] = mapped_column(String(64), index=True)
     address: Mapped[str] = mapped_column(String(128))
-    coordinates: Mapped[str] = mapped_column(String(128))
+    coordinates: Mapped[str] = mapped_column(String(64), nullable=True)
     contact_person: Mapped[str] = mapped_column(String(64))
     contact_phone: Mapped[str] = mapped_column(String(64))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[User] = relationship("User", back_populates="business")
-    deliveries: Mapped[list["FastDelivery"]] = relationship(
-        "FastDelivery", back_populates="business"
+    deliveries: Mapped[list["Delivery"]] = relationship(
+        "Delivery", back_populates="business"
     )
 
 
@@ -64,16 +64,16 @@ class Courier(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     courier_name: Mapped[str] = mapped_column(String(64), index=True)
-    contact_phone: Mapped[str] = mapped_column(String(64))
+    contact_phone: Mapped[str] = mapped_column(String(32))
     photo_url: Mapped[str] = mapped_column(String(64), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[User] = relationship("User", back_populates="courier")
-    deliveries: Mapped[list["FastDelivery"]] = relationship(
-        "FastDelivery", back_populates="courier"
+    deliveries: Mapped[list["Delivery"]] = relationship(
+        "Delivery", back_populates="courier"
     )
 
 
-class FastDelivery(Base):
+class Delivery(Base):
     """Таблица быстрых доставок."""
 
     __tablename__ = "deliveries"
@@ -81,13 +81,13 @@ class FastDelivery(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     start_geo: Mapped[str] = mapped_column(String(128), index=True)
     end_geo: Mapped[str] = mapped_column(String(128))
-    phone: Mapped[str] = mapped_column(String(64))
-    client_phone: Mapped[str] = mapped_column(String(64))
+    phone: Mapped[str] = mapped_column(String(32))
+    client_phone: Mapped[str] = mapped_column(String(32))
     status: Mapped[str] = mapped_column(String(32), default="В ожидании")
-    price: Mapped[int] = mapped_column()
+    price: Mapped[int] = mapped_column(Integer())
     yandex_url: Mapped[str] = mapped_column(String(128))
-    message_id: Mapped[str] = mapped_column(String(32))
-    chat_id: Mapped[str] = mapped_column(String(64))
+    message_id: Mapped[int] = mapped_column(Integer())
+    chat_id: Mapped[int] = mapped_column(Integer())
     courier_id: Mapped[int] = mapped_column(ForeignKey("couriers.id"), nullable=True)
     courier: Mapped[Courier] = relationship("Courier", back_populates="deliveries")
     business_id: Mapped[int] = mapped_column(ForeignKey("businesses.id"), nullable=True)

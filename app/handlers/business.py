@@ -370,9 +370,9 @@ async def business_delivery_fourth(message: Message, state: FSMContext):
     await message.answer(
         f"""Проверьте, все ли правильно?
 
-<b>Адрес доставки:</b> {data['end_geo']}
+<b>Куда:</b> {data['end_geo']}
 <b>Получатель:</b> {data["phone"]}
-<b>Цена за доставку:</b> {data["price"]} рублей""",
+<b>Цена:</b> {data["price"]} рублей""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
     )

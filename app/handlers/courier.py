@@ -228,7 +228,7 @@ async def accept_delivery(callback: CallbackQuery):
         return
 
     message_text = callback.message.text
-    price_in_message = re.search(r"Цена за доставку:\s*(\d+)\s*рублей", message_text)
+    price_in_message = re.search(r"ена:\s*(\d+)\s*рублей", message_text)
 
     if price_in_message:
         price_in_message = int(price_in_message.group(1))
@@ -238,7 +238,6 @@ async def accept_delivery(callback: CallbackQuery):
                 f"""Цена заказа №{delivery.id} изменена:
 
 <b>Новая цена:</b> {delivery.price} рублей
-
 Все еще хотите принять заказ?""",
                 parse_mode="HTML",
                 reply_markup=kb.price_changed_keyboard(delivery_id),
@@ -259,7 +258,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
-<b>Цена за доставку:</b> {delivery.price} рублей""",
+<b>Цена:</b> {delivery.price} рублей""",
         parse_mode="HTML",
         reply_markup=kb.yandex_maps_for_accepted(delivery.yandex_url),
     )
@@ -276,7 +275,7 @@ async def accept_delivery(callback: CallbackQuery):
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
-<b>Цена за доставку:</b> {delivery.price} рублей
+<b>Цена:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}"""
         ),
         parse_mode="HTML",
@@ -366,7 +365,7 @@ async def order_detail(callback: CallbackQuery):
 <b>Куда:</b> {order_details.end_geo}
 <b>Получатель:</b> {order_details.phone}
 <b>Заказчик:</b> {order_details.client_phone}
-<b>Цена за доставку:</b> {order_details.price} рублей"""
+<b>Цена:</b> {order_details.price} рублей"""
 
     await callback.message.answer(details_text, parse_mode="HTML")
 
@@ -386,7 +385,7 @@ async def delivery_more(callback: CallbackQuery):
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
-<b>Цена за доставку:</b> {delivery.price} рублей"""
+<b>Цена:</b> {delivery.price} рублей"""
 
     await callback.message.edit_text(
         text=message_text,

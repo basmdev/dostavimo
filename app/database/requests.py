@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy import delete, func, select, update
 
-from app.database.models import Business, Courier, FastDelivery, User, async_session
+from app.database.models import Business, Courier, Delivery, User, async_session
 
 
 # Получение информации о наличии бизнеса
@@ -139,7 +139,7 @@ async def add_delivery(
     business_id: int,
 ):
     async with async_session() as session:
-        new_delivery = FastDelivery(
+        new_delivery = Delivery(
             start_geo=start_geo,
             end_geo=end_geo,
             phone=phone,
@@ -265,7 +265,7 @@ async def update_delivery_status(
     delivery_id: int, new_status: str, courier_id: int = None
 ):
     async with async_session() as session:
-        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+        statement = select(Delivery).where(Delivery.id == delivery_id)
         result = await session.execute(statement)
         delivery = result.scalars().first()
         delivery.status = new_status
@@ -281,7 +281,7 @@ async def update_delivery_status(
 # Сохранение чата и ID сообщения
 async def save_chat_and_message_id(delivery_id: int, message_id: int, chat_id: int):
     async with async_session() as session:
-        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+        statement = select(Delivery).where(Delivery.id == delivery_id)
         result = await session.execute(statement)
         delivery = result.scalars().first()
         delivery.message_id = str(message_id)
@@ -293,8 +293,8 @@ async def save_chat_and_message_id(delivery_id: int, message_id: int, chat_id: i
 # Получение чата и ID сообщения
 async def get_message_and_chat_id(delivery_id: int):
     async with async_session() as session:
-        statement = select(FastDelivery.message_id, FastDelivery.chat_id).where(
-            FastDelivery.id == delivery_id
+        statement = select(Delivery.message_id, Delivery.chat_id).where(
+            Delivery.id == delivery_id
         )
         result = await session.execute(statement)
         message_id, chat_id = result.fetchone()
@@ -305,7 +305,7 @@ async def get_message_and_chat_id(delivery_id: int):
 # Получение доставки по ID
 async def get_delivery_by_id(delivery_id: int):
     async with async_session() as session:
-        statement = select(FastDelivery).where(FastDelivery.id == delivery_id)
+        statement = select(Delivery).where(Delivery.id == delivery_id)
 
         result = await session.execute(statement)
 
@@ -319,9 +319,9 @@ async def get_courier_deliveries(user_id: int, page: int, per_page: int):
     async with async_session() as session:
         offset = (page - 1) * per_page
         statement = (
-            select(FastDelivery)
-            .where(FastDelivery.courier_id == user_id)
-            .order_by(FastDelivery.id.desc())
+            select(Delivery)
+            .where(Delivery.courier_id == user_id)
+            .order_by(Delivery.id.desc())
             .offset(offset)
             .limit(per_page)
         )
@@ -336,9 +336,9 @@ async def get_business_deliveries(user_id: int, page: int, per_page: int, status
     async with async_session() as session:
         offset = (page - 1) * per_page
         statement = (
-            select(FastDelivery)
-            .where(FastDelivery.business_id == user_id, FastDelivery.status == status)
-            .order_by(FastDelivery.id.desc())
+            select(Delivery)
+            .where(Delivery.business_id == user_id, Delivery.status == status)
+            .order_by(Delivery.id.desc())
             .offset(offset)
             .limit(per_page)
         )
@@ -351,8 +351,8 @@ async def get_business_deliveries(user_id: int, page: int, per_page: int, status
 # Получение количества активных заказов
 async def get_business_deliveries_count(user_id: int, status: str):
     async with async_session() as session:
-        statement = select(func.count(FastDelivery.id)).where(
-            FastDelivery.business_id == user_id, FastDelivery.status == status
+        statement = select(func.count(Delivery.id)).where(
+            Delivery.business_id == user_id, Delivery.status == status
         )
         result = await session.execute(statement)
         count = result.scalar()
@@ -363,7 +363,7 @@ async def get_business_deliveries_count(user_id: int, status: str):
 # Получение деталей заказа по ID
 async def get_order_details(order_id: int):
     async with async_session() as session:
-        statement = select(FastDelivery).where(FastDelivery.id == order_id)
+        statement = select(Delivery).where(Delivery.id == order_id)
         result = await session.execute(statement)
         order = result.scalar_one_or_none()
         return order
@@ -373,7 +373,7 @@ async def get_order_details(order_id: int):
 async def update_delivery_price(delivery_id: int, new_price: int):
     async with async_session() as session:
         delivery = await session.scalar(
-            select(FastDelivery).where(FastDelivery.id == delivery_id)
+            select(Delivery).where(Delivery.id == delivery_id)
         )
         delivery.price = new_price
         await session.commit()

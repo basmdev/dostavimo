@@ -10,7 +10,7 @@ from app.utils import get_coordinates, get_coordinates_for_one_address
 router = Router()
 
 
-class FastDelivery(StatesGroup):
+class Delivery(StatesGroup):
     start_geo = State()
     end_geo = State()
     phone = State()
@@ -25,39 +25,39 @@ class FastDelivery(StatesGroup):
 # Кнопка "Срочная доставка"
 @router.message(F.text == "Срочная доставка")
 async def delivery_first(message: Message, state: FSMContext):
-    await state.set_state(FastDelivery.start_geo)
+    await state.set_state(Delivery.start_geo)
     await message.answer("Напишите адрес, откуда забирать?")
 
 
-@router.message(FastDelivery.start_geo)
+@router.message(Delivery.start_geo)
 async def delivery_second(message: Message, state: FSMContext):
     await state.update_data(start_geo=message.text)
-    await state.set_state(FastDelivery.end_geo)
+    await state.set_state(Delivery.end_geo)
     await message.answer("Напишите адрес, куда доставить?")
 
 
-@router.message(FastDelivery.end_geo)
+@router.message(Delivery.end_geo)
 async def delivery_third(message: Message, state: FSMContext):
     await state.update_data(end_geo=message.text)
-    await state.set_state(FastDelivery.client_phone)
+    await state.set_state(Delivery.client_phone)
     await message.answer("Ваш номер для связи?")
 
 
-@router.message(FastDelivery.client_phone)
+@router.message(Delivery.client_phone)
 async def delivery_fourth(message: Message, state: FSMContext):
     await state.update_data(client_phone=message.text)
-    await state.set_state(FastDelivery.phone)
+    await state.set_state(Delivery.phone)
     await message.answer("Номер получателя для связи?")
 
 
-@router.message(FastDelivery.phone)
+@router.message(Delivery.phone)
 async def delivery_fifth(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
-    await state.set_state(FastDelivery.price)
+    await state.set_state(Delivery.price)
     await message.answer("Сколько заплатите за доставку?")
 
 
-@router.message(FastDelivery.price)
+@router.message(Delivery.price)
 async def delivery_sixth(message: Message, state: FSMContext):
     await state.update_data(price=message.text)
     await state.update_data(status="В ожидании")
@@ -70,7 +70,7 @@ async def delivery_sixth(message: Message, state: FSMContext):
 <b>Куда:</b> {data['end_geo']}
 <b>Получатель:</b> {data["phone"]}
 <b>Заказчик:</b> {data["client_phone"]}
-<b>Цена за доставку:</b> {data["price"]} рублей""",
+<b>Цена:</b> {data["price"]} рублей""",
         parse_mode="HTML",
         reply_markup=kb.fast_delivery,
     )
@@ -130,7 +130,7 @@ async def confirm_delivery(callback: CallbackQuery, state: FSMContext):
 <b>Получатель:</b> {data["phone"]}
 <b>Заказчик:</b> {data['client_phone']}
 
-<b>Цена за доставку:</b> {data["price"]} рублей
+<b>Цена:</b> {data["price"]} рублей
 <b>Статус:</b> {data['status']}""",
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
@@ -169,7 +169,7 @@ async def adjust_price(callback: CallbackQuery):
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
-<b>Цена за доставку:</b> {delivery.price} рублей
+<b>Цена:</b> {delivery.price} рублей
 <b>Статус:</b> {delivery.status}""",
         parse_mode="HTML",
         reply_markup=kb.get_price_adjustment_keyboard(delivery_id),
@@ -193,7 +193,7 @@ async def cancel_delivery(callback: CallbackQuery):
 <b>Получатель:</b> {delivery.phone}
 <b>Заказчик:</b> {delivery.client_phone}
 
-<b>Цена за доставку:</b> {delivery.price} рублей
+<b>Цена:</b> {delivery.price} рублей
 <b>Статус:</b> Отменен""",
         parse_mode="HTML",
     )
